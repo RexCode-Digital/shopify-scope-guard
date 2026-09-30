@@ -22,4 +22,4 @@ outputs:
   report: { description: JSON report path }
 runs:
   using: node20
-  main: dist/index.js
+  main: dist/index.cjs
