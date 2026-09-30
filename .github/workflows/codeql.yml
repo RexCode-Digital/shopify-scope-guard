@@ -2,6 +2,7 @@ name: CodeQL
 on:
   push:
   pull_request:
+  workflow_dispatch:
   schedule:
     - cron: '31 4 * * 1'
 permissions:
@@ -12,7 +13,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
-      - uses: github/codeql-action/init@v3
+      - uses: github/codeql-action/init@87ef0dc97def48aa960fbf026a2563ee9dbdb470
         with:
           languages: javascript
-      - uses: github/codeql-action/analyze@v3
+      - uses: github/codeql-action/analyze@87ef0dc97def48aa960fbf026a2563ee9dbdb470
