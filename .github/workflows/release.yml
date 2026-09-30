@@ -1,0 +1,27 @@
+name: Release
+on:
+  push:
+    tags: ['v*']
+permissions:
+  contents: write
+  id-token: write
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          registry-url: https://registry.npmjs.org
+          cache: npm
+      - run: npm ci
+      - run: npm test
+      - run: npm run lint
+      - run: npm run build
+      - run: npm pack --dry-run
+      - run: npm publish --provenance --access public
+      - run: npm view shopify-scope-guard version dist.integrity
+      - uses: softprops/action-gh-release@6cbd405e2c4e67a21c47fa9e383d020e4e5c5e3f
+        with:
+          generate_release_notes: true

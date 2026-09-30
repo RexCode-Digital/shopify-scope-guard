@@ -1,0 +1,25 @@
+name: Shopify Scope Guard
+description: Audit Shopify access scopes against offline code evidence.
+author: efegokdemir
+branding:
+  icon: shield
+  color: green
+inputs:
+  path: { description: Repository path to scan, required: false, default: '.' }
+  config: { description: Shopify app TOML path, required: false }
+  fail-on: { description: Minimum finding severity that fails the job, required: false, default: high }
+  format: { description: Output format human, json, or sarif, required: false, default: human }
+  show-unmapped: { description: Include unsupported Shopify patterns, required: false, default: false }
+outputs:
+  outcome: { description: Scan outcome }
+  finding-count: { description: Total findings }
+  high-count: { description: High findings }
+  medium-count: { description: Medium findings }
+  low-count: { description: Low findings }
+  unknown-count: { description: Unknown code patterns }
+  missing-scope-count: { description: Missing or optional-required scope findings }
+  redundant-scope-count: { description: Redundant scope findings }
+  report: { description: JSON report path }
+runs:
+  using: node20
+  main: dist/index.js

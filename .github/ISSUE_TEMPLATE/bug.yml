@@ -1,0 +1,10 @@
+name: Bug report
+description: Report a reproducible analyzer or action problem.
+body:
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Reproduction
+      description: Include a minimal sanitized repository or fixture.
+    validations:
+      required: true

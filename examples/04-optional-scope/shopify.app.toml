@@ -1,0 +1,3 @@
+[access_scopes]
+scopes = ""
+optional_scopes = ["write_products"]

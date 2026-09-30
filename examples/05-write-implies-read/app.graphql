@@ -1,0 +1,1 @@
+query Products { products(first: 1) { nodes { id } } }

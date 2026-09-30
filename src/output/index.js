@@ -1,0 +1,8 @@
+const rank = { info: 0, low: 1, medium: 2, high: 3 };
+export function toJson(report) { return JSON.stringify(report, null, 2) + '\n'; }
+export function toHuman(report) {
+  const lines = ['Shopify Scope Guard', '', 'Scope audit', '────────────', `Declared: required ${report.summary.declaredRequired}, optional ${report.summary.declaredOptional}`, `Observed: evidenced ${report.summary.evidenced}, unknown ${report.summary.unknown}`, `Findings: ${report.summary.findingCount}`, ''];
+  for (const f of [...report.findings].sort((a,b) => rank[b.severity]-rank[a.severity])) { lines.push(`${f.severity.toUpperCase()} ${f.ruleId}${f.scope ? ` — ${f.scope}` : ''}`, `  ${f.explanation}`, `  Evidence: ${f.evidence}`, `  Source: ${f.source}`, `  Location: ${f.file ?? 'repository'}${f.line ? `:${f.line}` : ''}`, `  Recommendation: ${f.remediation}`, ''); }
+  return lines.join('\n');
+}
+export function toSarif(report) { return JSON.stringify({ version: '2.1.0', $schema: 'https://json.schemastore.org/sarif-2.1.0.json', runs: [{ tool: { driver: { name: report.tool.name, version: report.tool.version, informationUri: 'https://github.com/efegokdemir/shopify-scope-guard', rules: [...new Map(report.findings.map(f => [f.ruleId, { id: f.ruleId, shortDescription: { text: f.explanation }, helpUri: f.source }])).values()] } }, results: report.findings.map(f => ({ ruleId: f.ruleId, level: f.severity === 'high' ? 'error' : f.severity === 'medium' ? 'warning' : 'note', message: { text: f.explanation }, locations: f.file ? [{ physicalLocation: { artifactLocation: { uri: f.file }, region: f.line ? { startLine: f.line } : undefined } }] : undefined })) }] }, null, 2) + '\n'; }

@@ -1,0 +1,54 @@
+{
+  "name": "shopify-scope-guard",
+  "version": "0.1.0",
+  "description": "Catch missing, redundant, and unproven Shopify access scopes with offline static analysis.",
+  "type": "module",
+  "bin": {
+    "shopify-scope-guard": "src/cli/index.js"
+  },
+  "files": [
+    "src",
+    "action.yml",
+    "README.md",
+    "LICENSE",
+    "CHANGELOG.md",
+    "SECURITY.md"
+  ],
+  "scripts": {
+    "test": "node --test",
+    "coverage": "node --test --experimental-test-coverage",
+    "lint": "node --check src/cli/index.js && node --check src/analyzer/index.js",
+    "typecheck": "node --check src/analyzer/index.js",
+    "build": "node scripts/build-action.mjs",
+    "audit:fixture": "node src/cli/index.js audit examples/02-missing-scope --format human --fail-on none",
+    "package:smoke": "npm pack --dry-run"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "@iarna/toml": "^2.2.5",
+    "graphql": "^16.11.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/efegokdemir/shopify-scope-guard.git"
+  },
+  "homepage": "https://github.com/efegokdemir/shopify-scope-guard",
+  "license": "MIT",
+  "keywords": [
+    "shopify",
+    "shopify-app",
+    "shopify-api",
+    "shopify-admin-api",
+    "shopify-graphql",
+    "access-scopes",
+    "static-analysis",
+    "developer-tools",
+    "github-action",
+    "security"
+  ],
+  "devDependencies": {
+    "esbuild": "^0.28.2"
+  }
+}

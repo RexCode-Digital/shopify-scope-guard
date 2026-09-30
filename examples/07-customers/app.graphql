@@ -1,0 +1,1 @@
+query Customers { customers(first: 10) { nodes { id } } }

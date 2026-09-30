@@ -1,0 +1,2 @@
+[access_scopes]
+scopes = "write_products, read_products"
