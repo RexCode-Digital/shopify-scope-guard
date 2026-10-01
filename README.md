@@ -2,9 +2,16 @@
 
 **Catch missing, redundant, and unproven Shopify access scopes before they become runtime or review problems.**
 
-[![npm version](https://img.shields.io/npm/v/shopify-scope-guard?logo=npm)](https://www.npmjs.com/package/shopify-scope-guard) [![npm downloads](https://img.shields.io/npm/dm/shopify-scope-guard?logo=npm)](https://www.npmjs.com/package/shopify-scope-guard) [![CI](https://github.com/efegokdemir/shopify-scope-guard/actions/workflows/ci.yml/badge.svg)](https://github.com/efegokdemir/shopify-scope-guard/actions/workflows/ci.yml) [![CodeQL](https://github.com/efegokdemir/shopify-scope-guard/actions/workflows/codeql.yml/badge.svg)](https://github.com/efegokdemir/shopify-scope-guard/actions/workflows/codeql.yml) [![license](https://img.shields.io/github/license/efegokdemir/shopify-scope-guard)](LICENSE) [![GitHub Marketplace](https://img.shields.io/badge/GitHub%20Marketplace-Shopify%20Scope%20Guard-2088ff?logo=github)](https://github.com/marketplace/actions/shopify-scope-guard)
+[![npm](https://img.shields.io/npm/v/shopify-scope-guard?logo=npm)](https://www.npmjs.com/package/shopify-scope-guard)
+[![npm downloads](https://img.shields.io/npm/dm/shopify-scope-guard?logo=npm)](https://www.npmjs.com/package/shopify-scope-guard)
+[![CI](https://github.com/efegokdemir/shopify-scope-guard/actions/workflows/ci.yml/badge.svg)](https://github.com/efegokdemir/shopify-scope-guard/actions/workflows/ci.yml)
+[![CodeQL](https://github.com/efegokdemir/shopify-scope-guard/actions/workflows/codeql.yml/badge.svg)](https://github.com/efegokdemir/shopify-scope-guard/actions/workflows/codeql.yml)
+[![OpenSSF Scorecard](https://api.securityscorecards.dev/projects/github.com/efegokdemir/shopify-scope-guard/badge)](https://securityscorecards.dev/viewer/?uri=github.com/efegokdemir/shopify-scope-guard)
+[![license](https://img.shields.io/github/license/efegokdemir/shopify-scope-guard)](LICENSE)
 
-Shopify Scope Guard is an offline, deterministic, read-only static analyzer for Shopify app repositories. It compares declared access scopes with supported static evidence from repository code and configuration.
+Shopify Scope Guard is an offline, deterministic, read-only static analyzer for Shopify app repositories. It compares declared access scopes with supported static evidence from repository code and configuration, then reports missing, redundant, unproven, and unknown scope usage for review.
+
+**No Shopify credentials. No telemetry. No source upload. No Shopify API calls. No repository code execution.**
 
 > Unofficial open-source developer tooling. Not affiliated with, endorsed by, or certified by Shopify.
 
@@ -12,50 +19,68 @@ Shopify Scope Guard is an offline, deterministic, read-only static analyzer for 
 
 Run a scan without installing anything globally:
 
-```sh
+```bash
 npx shopify-scope-guard audit
 ```
 
 Or install it in a project:
 
-```sh
+```bash
 npm install --save-dev shopify-scope-guard
+npx shopify-scope-guard audit
+```
+
+JSON output:
+
+```bash
 npx shopify-scope-guard audit --format json
+```
+
+SARIF output for code-scanning workflows:
+
+```bash
+npx shopify-scope-guard audit --format sarif
 ```
 
 ## Why Scope Guard?
 
-- **Evidence-backed** — maps supported Admin GraphQL operations to documented access-scope requirements.
-- **Offline by default** — ordinary scans do not contact Shopify or require credentials.
+Shopify app permissions can drift away from the code that actually uses Shopify APIs. Scope Guard gives reviewers a deterministic, evidence-backed view of that relationship without requiring store access or Shopify credentials.
+
+- **Evidence-backed** — maps supported Shopify API operations to documented access-scope requirements.
+- **Offline by design** — ordinary scans require no Shopify credentials, store access, or network service.
 - **Deterministic** — the same repository, configuration, and bundled evidence produce the same result.
-- **Conservative unknown handling** — unmapped Shopify usage is reported for review, never silently treated as unused.
+- **Conservative** — UNKNOWN usage is reported for review and is never silently treated as unused.
 - **Scope-aware** — detects missing scopes, required/optional mismatches, redundant read scopes, and unproven declarations.
-- **CI-ready** — supports human, JSON, and SARIF output plus a bundled GitHub Action.
+- **CI-ready** — human, JSON, and SARIF output plus a bundled GitHub Action.
 - **Privacy-first** — does not upload source or execute repository code.
 
 ## GitHub Action
+
+A minimal pull-request gate:
 
 ```yaml
 name: Shopify Scope Guard
 
 on:
   pull_request:
-  push:
 
 permissions:
   contents: read
 
 jobs:
-  scope-audit:
+  scope-guard:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+
       - uses: efegokdemir/shopify-scope-guard@77b615859593999e7e88aa9ff27a2e572d0fbe08 # v0.1.0
         with:
           fail-on: high
 ```
 
-The full commit SHA is recommended for supply-chain assurance. The `v0.1.0` tag is the immutable release reference. The `v0.1` tag is a movable compatible minor alias.
+For high-assurance workflows, pin third-party Actions to reviewed immutable commit SHAs. Scope Guard also publishes the movable compatible minor alias `v0.1`; `v0.1.0` is the immutable patch release reference.
+
+See the [GitHub Action guide](docs/github-action.md).
 
 ### Action inputs
 
@@ -64,24 +89,18 @@ The full commit SHA is recommended for supply-chain assurance. The `v0.1.0` tag 
 | `path` | Repository path to scan | `.` |
 | `config` | Shopify app TOML path | auto-discovered |
 | `fail-on` | Minimum finding severity that fails the job | `high` |
-| `format` | `human`, `json`, or `sarif` output | `human` |
+| `format` | Output format: `human`, `json`, or `sarif` | `human` |
 | `show-unmapped` | Include unsupported Shopify patterns | `false` |
 
 ### Action outputs
 
-| Output | Meaning |
-| --- | --- |
-| `outcome` | `passed` or `failed` according to `fail-on` |
-| `finding-count` | Total finding count |
-| `high-count` | High-severity finding count |
-| `medium-count` | Medium-severity finding count |
-| `low-count` | Low-severity finding count |
-| `unknown-count` | Unmapped Shopify pattern count |
-| `missing-scope-count` | Missing or optional-required scope finding count |
-| `redundant-scope-count` | Redundant scope finding count |
-| `report` | `scope-guard.sarif` when SARIF output is selected; otherwise empty |
+`outcome`, `finding-count`, `high-count`, `medium-count`, `low-count`, `unknown-count`, `missing-scope-count`, `redundant-scope-count`, and `report`.
+
+The Action is bundled and runs on GitHub's `node20` JavaScript Action runtime. Consumer jobs do not install Scope Guard dependencies separately.
 
 ## What it catches today
+
+The current evidence pack is intentionally focused on high-confidence Shopify API and app-configuration mappings.
 
 | Area | Detection |
 | --- | --- |
@@ -89,94 +108,99 @@ The full commit SHA is recommended for supply-chain assurance. The `v0.1.0` tag 
 | Required/optional mismatches | Evidence requiring a scope declared as optional |
 | Redundant scopes | Read scopes already implied by declared write scopes |
 | Unproven declarations | Declared scopes with no supported usage evidenced |
-| Unknown usage | Shopify-related code that cannot be safely mapped |
-| Admin GraphQL evidence | High-confidence static query and mutation operation matching |
+| Unknown usage | Shopify-related code that cannot be safely mapped to supported evidence |
+| Admin GraphQL | Supported query and mutation operations matched against documented scope requirements |
 | Shopify app configuration | Required and optional scopes in `shopify.app*.toml` |
 | SARIF | SARIF 2.1.0 output for code-scanning workflows |
 
+Current high-confidence evidence areas include products, collections, orders, customers, inventory, locations, themes, files, metaobjects, and cart transforms.
+
+See the [supported patterns](docs/supported-patterns.md) and [rule reference](docs/rule-reference.md).
+
 ## Evidence model
 
-**EVIDENCED** means a supported operation has strong static evidence.
+Scope Guard deliberately separates evidence from certainty.
 
-**NOT EVIDENCED** means: “No supported usage requiring this scope was evidenced.” It does not prove that a scope is unused.
+- **EVIDENCED** — a supported operation has strong static evidence for the scope.
+- **NOT EVIDENCED** — no supported usage requiring the scope was evidenced. This does **not** prove that the scope is unused.
+- **UNKNOWN** — Shopify-related code could not be safely mapped to supported evidence. UNKNOWN is deliberately conservative and is never classified as unused.
 
-**UNKNOWN** means Shopify-related code could not be safely mapped to supported evidence. UNKNOWN is deliberately conservative and is never classified as unused.
+The bundled high-confidence evidence pack is versioned against Shopify API `2026-07`. Evidence is based on documented Shopify access-scope relationships and supported static patterns, not live store permissions.
 
-The bundled high-confidence evidence pack is versioned against Shopify API `2026-07`. It currently covers products, collections, orders, customers, inventory, locations, themes, files, metaobjects, and cart transforms.
-
-## Example output
-
-The following is an illustrative human-readable report using the actual CLI format:
-
-```text
-Shopify Scope Guard
-
-Scope audit
-────────────
-Declared: required 2, optional 1
-Observed: evidenced 1, unknown 1
-Findings: 3
-
-HIGH SG-SCOPE-001 — write_products
-  The productCreate operation requires write_products, which is not declared.
-  Evidence: productCreate mutation
-  Source: https://shopify.dev/docs/api/admin-graphql/latest/mutations/productcreate
-  Location: app/graphql/products.ts:12
-  Recommendation: Declare write_products as required, or make the code path conditional on an optional-scope request.
-
-MEDIUM SG-SCOPE-003 — read_products
-  write_products already grants read access to this resource; the separate read_products declaration is redundant.
-  Evidence: write_products implies read_products
-  Location: shopify.app.toml
-  Recommendation: Remove read_products from the declarations unless you intentionally replace write_products.
-
-INFO SG-SCOPE-006
-  Shopify-related code was found but could not be safely mapped to supported static evidence.
-  Location: app/runtime-query.ts:8
-  Recommendation: Review the unmapped code manually.
-```
+See the [evidence model](docs/evidence-model.md).
 
 ## CLI
 
-```sh
-# Audit a repository
+```text
+shopify-scope-guard audit [--format human|json|sarif] [--fail-on ...]
+shopify-scope-guard rules
+shopify-scope-guard explain SG-SCOPE-001
+shopify-scope-guard --version
+```
+
+Examples:
+
+```bash
+# Human-readable scan
 npx shopify-scope-guard audit
 
 # Machine-readable output
 npx shopify-scope-guard audit --format json
+
+# SARIF for code-scanning workflows
 npx shopify-scope-guard audit --format sarif
 
-# Inspect bundled evidence
+# Fail when medium-or-higher findings are present
+npx shopify-scope-guard audit --fail-on medium
+
+# Inspect the bundled evidence
 npx shopify-scope-guard rules
 npx shopify-scope-guard explain SG-SCOPE-001
-
-# Print the installed version
-npx shopify-scope-guard --version
 ```
 
-The `--fail-on` option accepts `none`, `low`, `medium`, or `high`. A scan exits `1` when a finding meets the selected threshold, `0` when it passes, and `2` for usage or scanner errors.
+The `--fail-on` option accepts `none`, `low`, `medium`, or `high`. A scan exits `1` when a finding meets the selected threshold, `0` when policy passes, and `2` for usage or scanner errors.
+
+See the [CLI reference](docs/cli.md).
 
 ## Configuration
 
-Scope Guard reads Shopify app TOML configuration from the repository. It supports `[access_scopes]` `scopes` and `optional_scopes` values. The CLI also accepts `--config` for an explicit TOML path; `--path` selects the repository root.
+Scope Guard reads Shopify app TOML configuration from the repository. It supports `[access_scopes]` `scopes` and `optional_scopes` values.
+
+The CLI supports:
+
+- `--path` to select the repository root
+- `--config` to select an explicit Shopify app TOML path
 
 ## Security and privacy
 
-- Repository code is never executed.
-- Ordinary scans do not contact Shopify.
-- Shopify credentials are not required.
-- Source is not uploaded and no telemetry is collected.
-- Scanned repository input is treated as untrusted.
-- File discovery and analysis are bounded by the scanner's supported inputs.
-- Analysis is offline by default.
+Scope Guard treats repository content as untrusted input and is intentionally narrow.
+
+It:
+
+- does not execute scanned repository code
+- does not call Shopify APIs during ordinary scans
+- does not require Shopify credentials
+- does not upload source or collect telemetry
+- uses bounded, supported static analysis
+- keeps analysis offline by default
 
 See [SECURITY.md](SECURITY.md), [SUPPORT.md](SUPPORT.md), and the [security model](docs/security.md).
 
-## Limitations and non-goals
+## Non-goals
 
-Static analysis may not see runtime-generated GraphQL, arbitrary wrappers, external services, merchant configuration, actual merchant-granted scopes, staff permissions, protected customer data approval, or unsupported API surfaces. UNKNOWN findings require manual review. The tool does not prove a scope is unused, replace Shopify schema validation, or replace Shopify App Review.
+Scope Guard does **not**:
 
-See [Limitations](docs/limitations.md) and the [supported patterns](docs/supported-patterns.md).
+- inspect the scopes actually granted to a merchant
+- inspect staff permissions or protected-customer-data approval
+- see every runtime-generated GraphQL operation
+- understand every custom wrapper or external service
+- guarantee that a scope is unused
+- replace Shopify schema validation or Shopify App Review
+- provide complete coverage of every Shopify API surface
+
+UNKNOWN findings require manual review.
+
+See [Limitations](docs/limitations.md).
 
 ## Related Shopify developer tools
 
@@ -184,34 +208,30 @@ Building or maintaining Shopify apps?
 
 - **[ChangeGuard](https://github.com/efegokdemir/shopify-app-changeguard)** — Review meaningful Shopify app configuration changes before they reach production.
 - **[Shopify Upgrade Guard](https://github.com/efegokdemir/shopify-upgrade-guard)** — Catch documented Shopify API and platform upgrade risks before production migrations.
-- **[Shopify Scope Guard](https://github.com/efegokdemir/shopify-scope-guard)** — Audit whether declared Shopify access scopes are supported by code evidence.
+- **[Shopify Scope Guard](https://github.com/efegokdemir/shopify-scope-guard)** — Audit whether declared Shopify access scopes are supported by offline code evidence.
 
 These are independent open-source tools and are not affiliated with Shopify.
 
-## Documentation
-
-| Documentation | Purpose |
-| --- | --- |
-| [CLI](docs/cli.md) | CLI usage and output |
-| [GitHub Action](docs/github-action.md) | CI integration |
-| [Rule reference](docs/rule-reference.md) | Finding and evidence reference |
-| [Scope model](docs/scope-model.md) | Declared-scope comparison model |
-| [Evidence model](docs/evidence-model.md) | Evidence statuses and sources |
-| [Supported patterns](docs/supported-patterns.md) | Static analysis coverage |
-| [Limitations](docs/limitations.md) | What cannot be detected |
-| [Architecture](docs/architecture.md) | Internal design |
-| [Security](docs/security.md) | Security model |
-
 ## Contributing
 
-Contributions are welcome around new evidence-backed scope mappings, official Shopify documentation references, false-positive reduction, parser improvements, scanner hardening, and privacy-safe fixtures. See [CONTRIBUTING.md](CONTRIBUTING.md) and the [open issues](https://github.com/efegokdemir/shopify-scope-guard/issues).
+Contributions are welcome, especially around evidence-backed scope mappings, official Shopify documentation references, false-positive reduction, parser improvements, scanner hardening, and privacy-safe fixtures.
+
+A Shopify-specific rule should include:
+
+1. an official Shopify evidence source
+2. the affected API/version where relevant
+3. bounded deterministic detection
+4. a positive regression test
+5. a false-positive or unchanged case where appropriate
+6. honest evidence confidence
+
+Start with [CONTRIBUTING.md](CONTRIBUTING.md) or browse the [open issues](https://github.com/efegokdemir/shopify-scope-guard/issues).
 
 ## Roadmap
 
-- Expand verified Shopify scope coverage.
-- Add additional Admin API surfaces without mixing evidence confidence levels.
-- Improve alternative-scope modeling and API-version-aware evidence.
-- Reduce false positives and improve UNKNOWN handling.
+Current priorities include additional verified Shopify scope coverage, additional Admin API surfaces without mixing evidence confidence levels, better alternative-scope modeling, API-version-aware evidence, false-positive reduction, improved UNKNOWN handling, and privacy-safe consumer/action fixtures.
+
+See [ROADMAP.md](ROADMAP.md).
 
 ## License
 
