@@ -78,7 +78,7 @@ jobs:
           fail-on: high
 ```
 
-For high-assurance workflows, pin third-party Actions to reviewed immutable commit SHAs. Scope Guard also publishes the movable compatible minor alias `v0.1`; `v0.1.0` is the immutable patch release reference.
+For high-assurance workflows, pin third-party Actions to reviewed immutable commit SHAs. Scope Guard also publishes the movable compatible minor alias `v0.2`; `v0.2.0` is the immutable patch release reference.
 
 See the [GitHub Action guide](docs/github-action.md).
 
@@ -113,7 +113,7 @@ The current evidence pack is intentionally focused on high-confidence Shopify AP
 | Shopify app configuration | Required and optional scopes in `shopify.app*.toml` |
 | SARIF | SARIF 2.1.0 output for code-scanning workflows |
 
-Current high-confidence evidence areas include products, collections, orders, customers, inventory, locations, themes, files, metaobjects, and cart transforms.
+Current high-confidence evidence areas include products, collections, orders, customers, inventory, locations, themes, files, metaobjects, cart transforms, analytics annotations, reports, ShopifyQL, and rollouts.
 
 See the [supported patterns](docs/supported-patterns.md) and [rule reference](docs/rule-reference.md).
 
@@ -125,7 +125,7 @@ Scope Guard deliberately separates evidence from certainty.
 - **NOT EVIDENCED** — no supported usage requiring the scope was evidenced. This does **not** prove that the scope is unused.
 - **UNKNOWN** — Shopify-related code could not be safely mapped to supported evidence. UNKNOWN is deliberately conservative and is never classified as unused.
 
-The bundled high-confidence evidence pack is versioned against Shopify API `2026-07`. Evidence is based on documented Shopify access-scope relationships and supported static patterns, not live store permissions.
+The bundled high-confidence evidence pack is versioned against Shopify API `2026-10`. Evidence is based on documented Shopify access-scope relationships and supported static patterns, not live store permissions.
 
 See the [evidence model](docs/evidence-model.md).
 
