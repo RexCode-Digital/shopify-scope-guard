@@ -46,8 +46,8 @@ The initial evidence pack covers high-confidence Admin GraphQL operations for pr
 
 ## Related tools
 
-- ChangeGuard: did your Shopify app configuration change?
-- Shopify Upgrade Guard: will a Shopify API/platform upgrade affect your code?
+- [ChangeGuard](https://github.com/efegokdemir/shopify-app-changeguard): did your Shopify app configuration change?
+- [Shopify Upgrade Guard](https://github.com/efegokdemir/shopify-upgrade-guard): will a Shopify API/platform upgrade affect your code?
 - Scope Guard: does your code justify the Shopify permissions you request?
 
 These are independent open-source tools and are not affiliated with Shopify.
