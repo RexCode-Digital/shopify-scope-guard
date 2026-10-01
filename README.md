@@ -208,7 +208,7 @@ Building or maintaining Shopify apps?
 
 - **[ChangeGuard](https://github.com/efegokdemir/shopify-app-changeguard)** — Review meaningful Shopify app configuration changes before they reach production.
 - **[Shopify Upgrade Guard](https://github.com/efegokdemir/shopify-upgrade-guard)** — Catch documented Shopify API and platform upgrade risks before production migrations.
-- **[Shopify Scope Guard](https://github.com/efegokdemir/shopify-scope-guard)** — Audit whether declared Shopify access scopes are supported by offline code evidence.
+- **[Shopify App Review Guard](https://github.com/efegokdemir/shopify-app-review-guard)** — Run deterministic preflight checks for Shopify App Store and production readiness.
 
 These are independent open-source tools and are not affiliated with Shopify.
 
