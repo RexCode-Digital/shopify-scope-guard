@@ -20,7 +20,15 @@ jobs:
       - run: npm run lint
       - run: npm run build
       - run: npm pack --dry-run
-      - run: npm publish --provenance --access public
+      - name: Publish if version is not already registered
+        shell: bash
+        run: |
+          package_version=$(node -p "require('./package.json').version")
+          if npm view "shopify-scope-guard@${package_version}" version >/dev/null 2>&1; then
+            echo "shopify-scope-guard@${package_version} is already published; continuing with registry verification."
+          else
+            npm publish --provenance --access public
+          fi
       - run: npm view shopify-scope-guard version dist.integrity
       - uses: softprops/action-gh-release@6cbd405e2c4e67a21c47fa9e383d020e4e5c5e3f
         with:
