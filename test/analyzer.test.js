@@ -20,6 +20,13 @@ test('multiple documents are analyzed', () => { const r = audit({ root: fixture(
 test('runtime query becomes unknown', () => assert.ok(audit({ root: fixture('13-unknown-runtime-pattern') }).findings.some(f => f.ruleId === 'SG-SCOPE-006')));
 test('storefront is not compared with admin rules', () => assert.equal(audit({ root: fixture('14-storefront-not-admin') }).findings.length, 0));
 test('visible admin endpoint is detected', () => assert.equal(audit({ root: fixture('15-version-specific-behaviour') }).findings.length, 0));
+test('2026-10 evidence maps analytics, reports, and rollouts', () => {
+  const r = audit({ root: fixture('16-2026-10-evidence') });
+  assert.equal(r.findings.length, 0);
+  assert.ok(r.observations.some(item => item.operation === 'shop.analyticsAnnotations'));
+  assert.ok(r.observations.some(item => item.operation === 'analyticsTargets'));
+  assert.ok(r.observations.some(item => item.operation === 'rollouts'));
+});
 test('json output is stable and parseable', () => { const json = toJson(audit({ root: fixture('02-missing-scope') })); assert.equal(JSON.parse(json).tool.name, 'shopify-scope-guard'); });
 test('sarif output is 2.1.0', () => assert.equal(JSON.parse(toSarif(audit({ root: fixture('02-missing-scope') }))).version, '2.1.0'));
 for (const [name, expected] of [['products','read_products'],['product','read_products'],['productVariants','read_products'],['orders','read_orders'],['order','read_orders'],['customers','read_customers'],['customer','read_customers'],['inventoryLevels','read_inventory'],['locations','read_locations'],['themes','read_themes'],['files','read_files']]) {

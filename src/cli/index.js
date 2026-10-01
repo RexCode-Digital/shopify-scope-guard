@@ -6,7 +6,7 @@ import { EVIDENCE_REGISTRY, EVIDENCE_VERSION } from '../evidence/registry.js';
 
 const args = process.argv.slice(2); const command = args[0] ?? 'audit';
 const value = (flag, fallback) => { const i = args.indexOf(flag); return i >= 0 ? args[i + 1] ?? fallback : fallback; };
-if (command === 'version' || args.includes('--version')) { console.log('0.1.0'); process.exit(0); }
+if (command === 'version' || args.includes('--version')) { console.log('0.2.0'); process.exit(0); }
 if (command === 'rules') { console.log(JSON.stringify({ evidenceVersion: EVIDENCE_VERSION, rules: EVIDENCE_REGISTRY }, null, 2)); process.exit(0); }
 if (command === 'explain') { const ruleId = args[1]; console.log(JSON.stringify(EVIDENCE_REGISTRY.filter(r => r.ruleId === ruleId), null, 2)); process.exit(0); }
 if (command !== 'audit') { console.error('Usage: shopify-scope-guard audit [path] [--format human|json|sarif] [--fail-on none|low|medium|high]'); process.exit(2); }

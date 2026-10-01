@@ -1,0 +1,2 @@
+[access_scopes]
+scopes = "write_analytics_annotations,write_reports,read_rollouts"

@@ -41,7 +41,7 @@ export function audit({ root = '.', configPath, include, exclude = [] } = {}) {
     for (const op of operations) {
       if (op.parseError) { unknown.push({ file: path.relative(absoluteRoot, file), line: op.line, reason: 'GraphQL-like text could not be parsed safely.' }); continue; }
       for (const field of op.fields) {
-        const rules = rulesFor(field.name);
+        const rules = rulesFor(field.path);
         if (!rules.length) continue;
         for (const item of rules) observations.push({ ...item, operationType: op.type, file, line: field.line, operationName: op.name });
       }
