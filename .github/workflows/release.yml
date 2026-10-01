@@ -30,6 +30,6 @@ jobs:
             npm publish --provenance --access public
           fi
       - run: npm view shopify-scope-guard version dist.integrity
-      - uses: softprops/action-gh-release@6cbd405e2c4e67a21c47fa9e383d020e4e5c5e3f
+      - uses: softprops/action-gh-release@4d8ab33c14495378882c8fef6babbed32e187639
         with:
           generate_release_notes: true
