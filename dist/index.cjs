@@ -1947,24 +1947,24 @@ var require_stringify = __commonJS({
     function isNumber(type) {
       return type === "float" || type === "integer";
     }
-    function arrayType(values2) {
-      var contentType = tomlType2(values2[0]);
-      if (values2.every((_) => tomlType2(_) === contentType)) return contentType;
-      if (values2.every((_) => isNumber(tomlType2(_)))) return "float";
+    function arrayType(values) {
+      var contentType = tomlType2(values[0]);
+      if (values.every((_) => tomlType2(_) === contentType)) return contentType;
+      if (values.every((_) => isNumber(tomlType2(_)))) return "float";
       return "mixed";
     }
-    function validateArray(values2) {
-      const type = arrayType(values2);
+    function validateArray(values) {
+      const type = arrayType(values);
       if (type === "mixed") {
         throw arrayOneTypeError();
       }
       return type;
     }
-    function stringifyInlineArray(values2) {
-      values2 = toJSON(values2);
-      const type = validateArray(values2);
+    function stringifyInlineArray(values) {
+      values = toJSON(values);
+      const type = validateArray(values);
       var result = "[";
-      var stringified = values2.map((_) => stringifyInline(_, type));
+      var stringified = values.map((_) => stringifyInline(_, type));
       if (stringified.join(", ").length > 60 || /\n/.test(stringified)) {
         result += "\n  " + stringified.join(",\n  ") + "\n";
       } else {
@@ -1990,14 +1990,14 @@ var require_stringify = __commonJS({
         throw typeError(valueType);
       }
     }
-    function stringifyArrayOfTables(prefix, indent, key, values2) {
-      values2 = toJSON(values2);
-      validateArray(values2);
-      var firstValueType = tomlType2(values2[0]);
+    function stringifyArrayOfTables(prefix, indent, key, values) {
+      values = toJSON(values);
+      validateArray(values);
+      var firstValueType = tomlType2(values[0]);
       if (firstValueType !== "table") throw typeError(firstValueType);
       var fullKey = prefix + stringifyKey(key);
       var result = "";
-      values2.forEach((table) => {
+      values.forEach((table) => {
         if (result.length > 0) result += "\n";
         result += indent + "[[" + fullKey + "]]\n";
         result += stringifyObject(fullKey + ".", indent, table);
@@ -2337,10 +2337,10 @@ var require_GraphQLError = __commonJS({
        */
       constructor(message, ...rawArgs) {
         var _this$nodes, _nodeLocations$, _ref;
-        const { nodes, source, positions, path: path2, originalError, extensions } = toNormalizedOptions(rawArgs);
+        const { nodes, source, positions, path: path4, originalError, extensions } = toNormalizedOptions(rawArgs);
         super(message);
         this.name = "GraphQLError";
-        this.path = path2 !== null && path2 !== void 0 ? path2 : void 0;
+        this.path = path4 !== null && path4 !== void 0 ? path4 : void 0;
         this.originalError = originalError !== null && originalError !== void 0 ? originalError : void 0;
         this.nodes = undefinedIfEmpty(
           Array.isArray(nodes) ? nodes : nodes ? [nodes] : void 0
@@ -4965,13 +4965,13 @@ var require_parser2 = __commonJS({
         this.expectKeyword("enum");
         const name = this.parseName();
         const directives = this.parseConstDirectives();
-        const values2 = this.parseEnumValuesDefinition();
+        const values = this.parseEnumValuesDefinition();
         return this.node(start, {
           kind: _kinds.Kind.ENUM_TYPE_DEFINITION,
           description,
           name,
           directives,
-          values: values2
+          values
         });
       }
       /**
@@ -5240,15 +5240,15 @@ var require_parser2 = __commonJS({
         this.expectKeyword("enum");
         const name = this.parseName();
         const directives = this.parseConstDirectives();
-        const values2 = this.parseEnumValuesDefinition();
-        if (directives.length === 0 && values2.length === 0) {
+        const values = this.parseEnumValuesDefinition();
+        if (directives.length === 0 && values.length === 0) {
           throw this.unexpected();
         }
         return this.node(start, {
           kind: _kinds.Kind.ENUM_TYPE_EXTENSION,
           name,
           directives,
-          values: values2
+          values
         });
       }
       /**
@@ -5797,9 +5797,9 @@ var require_suggestionList = __commonJS({
     function suggestionList(input2, options) {
       const optionsByDistance = /* @__PURE__ */ Object.create(null);
       const lexicalDistance = new LexicalDistance(input2);
-      const threshold2 = Math.floor(input2.length * 0.4) + 1;
+      const threshold = Math.floor(input2.length * 0.4) + 1;
       for (const option of options) {
-        const distance = lexicalDistance.measure(option, threshold2);
+        const distance = lexicalDistance.measure(option, threshold);
         if (distance !== void 0) {
           optionsByDistance[option] = distance;
         }
@@ -5820,7 +5820,7 @@ var require_suggestionList = __commonJS({
           new Array(input2.length + 1).fill(0)
         ];
       }
-      measure(option, threshold2) {
+      measure(option, threshold) {
         if (this._input === option) {
           return 0;
         }
@@ -5837,7 +5837,7 @@ var require_suggestionList = __commonJS({
         }
         const aLength = a.length;
         const bLength = b.length;
-        if (aLength - bLength > threshold2) {
+        if (aLength - bLength > threshold) {
           return void 0;
         }
         const rows = this._rows;
@@ -5867,12 +5867,12 @@ var require_suggestionList = __commonJS({
             }
             currentRow[j] = currentCell;
           }
-          if (smallestCell > threshold2) {
+          if (smallestCell > threshold) {
             return void 0;
           }
         }
         const distance = rows[aLength % 3][bLength];
-        return distance <= threshold2 ? distance : void 0;
+        return distance <= threshold ? distance : void 0;
       }
     };
     function stringToArray(str) {
@@ -6105,7 +6105,7 @@ var require_visitor = __commonJS({
     exports2.BREAK = void 0;
     exports2.getEnterLeaveForKind = getEnterLeaveForKind;
     exports2.getVisitFn = getVisitFn;
-    exports2.visit = visit2;
+    exports2.visit = visit;
     exports2.visitInParallel = visitInParallel;
     var _devAssert = require_devAssert();
     var _inspect2 = require_inspect();
@@ -6113,7 +6113,7 @@ var require_visitor = __commonJS({
     var _kinds = require_kinds();
     var BREAK = Object.freeze({});
     exports2.BREAK = BREAK;
-    function visit2(root, visitor, visitorKeys = _ast.QueryDocumentKeys) {
+    function visit(root, visitor, visitorKeys = _ast.QueryDocumentKeys) {
       const enterLeaveMap = /* @__PURE__ */ new Map();
       for (const kind of Object.values(_kinds.Kind)) {
         enterLeaveMap.set(kind, getEnterLeaveForKind(visitor, kind));
@@ -6126,14 +6126,14 @@ var require_visitor = __commonJS({
       let node = root;
       let key = void 0;
       let parent = void 0;
-      const path2 = [];
+      const path4 = [];
       const ancestors = [];
       do {
         index++;
         const isLeaving = index === keys.length;
         const isEdited = isLeaving && edits.length !== 0;
         if (isLeaving) {
-          key = ancestors.length === 0 ? void 0 : path2[path2.length - 1];
+          key = ancestors.length === 0 ? void 0 : path4[path4.length - 1];
           node = parent;
           parent = ancestors.pop();
           if (isEdited) {
@@ -6167,7 +6167,7 @@ var require_visitor = __commonJS({
           if (node === null || node === void 0) {
             continue;
           }
-          path2.push(key);
+          path4.push(key);
         }
         let result;
         if (!Array.isArray(node)) {
@@ -6177,13 +6177,13 @@ var require_visitor = __commonJS({
             `Invalid AST Node: ${(0, _inspect2.inspect)(node)}.`
           );
           const visitFn = isLeaving ? (_enterLeaveMap$get = enterLeaveMap.get(node.kind)) === null || _enterLeaveMap$get === void 0 ? void 0 : _enterLeaveMap$get.leave : (_enterLeaveMap$get2 = enterLeaveMap.get(node.kind)) === null || _enterLeaveMap$get2 === void 0 ? void 0 : _enterLeaveMap$get2.enter;
-          result = visitFn === null || visitFn === void 0 ? void 0 : visitFn.call(visitor, node, key, parent, path2, ancestors);
+          result = visitFn === null || visitFn === void 0 ? void 0 : visitFn.call(visitor, node, key, parent, path4, ancestors);
           if (result === BREAK) {
             break;
           }
           if (result === false) {
             if (!isLeaving) {
-              path2.pop();
+              path4.pop();
               continue;
             }
           } else if (result !== void 0) {
@@ -6192,7 +6192,7 @@ var require_visitor = __commonJS({
               if ((0, _ast.isNode)(result)) {
                 node = result;
               } else {
-                path2.pop();
+                path4.pop();
                 continue;
               }
             }
@@ -6202,7 +6202,7 @@ var require_visitor = __commonJS({
           edits.push([key, node]);
         }
         if (isLeaving) {
-          path2.pop();
+          path4.pop();
         } else {
           var _node$kind;
           stack = {
@@ -6409,7 +6409,7 @@ var require_printer = __commonJS({
         leave: ({ value }) => value
       },
       ListValue: {
-        leave: ({ values: values2 }) => "[" + join(values2, ", ") + "]"
+        leave: ({ values }) => "[" + join(values, ", ") + "]"
       },
       ObjectValue: {
         leave: ({ fields }) => "{" + join(fields, ", ") + "}"
@@ -6481,7 +6481,7 @@ var require_printer = __commonJS({
         )
       },
       EnumTypeDefinition: {
-        leave: ({ description, name, directives, values: values2 }) => wrap("", description, "\n") + join(["enum", name, join(directives, " "), block(values2)], " ")
+        leave: ({ description, name, directives, values }) => wrap("", description, "\n") + join(["enum", name, join(directives, " "), block(values)], " ")
       },
       EnumValueDefinition: {
         leave: ({ description, name, directives }) => wrap("", description, "\n") + join([name, join(directives, " ")], " ")
@@ -6544,7 +6544,7 @@ var require_printer = __commonJS({
         )
       },
       EnumTypeExtension: {
-        leave: ({ name, directives, values: values2 }) => join(["extend enum", name, join(directives, " "), block(values2)], " ")
+        leave: ({ name, directives, values }) => join(["extend enum", name, join(directives, " "), block(values)], " ")
       },
       InputObjectTypeExtension: {
         leave: ({ name, directives, fields }) => join(["extend input", name, join(directives, " "), block(fields)], " ")
@@ -8335,7 +8335,7 @@ var require_definition = __commonJS({
        * ```
        */
       toConfig() {
-        const values2 = (0, _keyValMap.keyValMap)(
+        const values = (0, _keyValMap.keyValMap)(
           this.getValues(),
           (value) => value.name,
           (value) => ({
@@ -8349,7 +8349,7 @@ var require_definition = __commonJS({
         return {
           name: this.name,
           description: this.description,
-          values: values2,
+          values,
           extensions: this.extensions,
           astNode: this.astNode,
           extensionASTNodes: this.extensionASTNodes
@@ -9747,8 +9747,8 @@ var require_introspection = __commonJS({
           },
           resolve(type, { includeDeprecated }) {
             if ((0, _definition.isEnumType)(type)) {
-              const values2 = type.getValues();
-              return includeDeprecated ? values2 : values2.filter((field) => field.deprecationReason == null);
+              const values = type.getValues();
+              return includeDeprecated ? values : values.filter((field) => field.deprecationReason == null);
             }
           }
         },
@@ -9764,8 +9764,8 @@ var require_introspection = __commonJS({
           },
           resolve(type, { includeDeprecated }) {
             if ((0, _definition.isInputObjectType)(type)) {
-              const values2 = Object.values(type.getFields());
-              return includeDeprecated ? values2 : values2.filter((field) => field.deprecationReason == null);
+              const values = Object.values(type.getFields());
+              return includeDeprecated ? values : values.filter((field) => field.deprecationReason == null);
             }
           }
         },
@@ -13639,8 +13639,8 @@ var require_printPathArray = __commonJS({
       value: true
     });
     exports2.printPathArray = printPathArray;
-    function printPathArray(path2) {
-      return path2.map(
+    function printPathArray(path4) {
+      return path4.map(
         (key) => typeof key === "number" ? "[" + key.toString() + "]" : "." + key
       ).join("");
     }
@@ -13663,9 +13663,9 @@ var require_Path = __commonJS({
         typename
       };
     }
-    function pathToArray(path2) {
+    function pathToArray(path4) {
       const flattened = [];
-      let curr = path2;
+      let curr = path4;
       while (curr) {
         flattened.push(curr.key);
         curr = curr.prev;
@@ -13696,21 +13696,21 @@ var require_coerceInputValue = __commonJS({
     function coerceInputValue(inputValue, type, onError = defaultOnError) {
       return coerceInputValueImpl(inputValue, type, onError, void 0);
     }
-    function defaultOnError(path2, invalidValue, error) {
+    function defaultOnError(path4, invalidValue, error) {
       let errorPrefix = "Invalid value " + (0, _inspect2.inspect)(invalidValue);
-      if (path2.length > 0) {
-        errorPrefix += ` at "value${(0, _printPathArray.printPathArray)(path2)}"`;
+      if (path4.length > 0) {
+        errorPrefix += ` at "value${(0, _printPathArray.printPathArray)(path4)}"`;
       }
       error.message = errorPrefix + ": " + error.message;
       throw error;
     }
-    function coerceInputValueImpl(inputValue, type, onError, path2) {
+    function coerceInputValueImpl(inputValue, type, onError, path4) {
       if ((0, _definition.isNonNullType)(type)) {
         if (inputValue != null) {
-          return coerceInputValueImpl(inputValue, type.ofType, onError, path2);
+          return coerceInputValueImpl(inputValue, type.ofType, onError, path4);
         }
         onError(
-          (0, _Path.pathToArray)(path2),
+          (0, _Path.pathToArray)(path4),
           inputValue,
           new _GraphQLError.GraphQLError(
             `Expected non-nullable type "${(0, _inspect2.inspect)(
@@ -13727,16 +13727,16 @@ var require_coerceInputValue = __commonJS({
         const itemType = type.ofType;
         if ((0, _isIterableObject.isIterableObject)(inputValue)) {
           return Array.from(inputValue, (itemValue, index) => {
-            const itemPath = (0, _Path.addPath)(path2, index, void 0);
+            const itemPath = (0, _Path.addPath)(path4, index, void 0);
             return coerceInputValueImpl(itemValue, itemType, onError, itemPath);
           });
         }
-        return [coerceInputValueImpl(inputValue, itemType, onError, path2)];
+        return [coerceInputValueImpl(inputValue, itemType, onError, path4)];
       }
       if ((0, _definition.isInputObjectType)(type)) {
         if (!(0, _isObjectLike.isObjectLike)(inputValue) || Array.isArray(inputValue)) {
           onError(
-            (0, _Path.pathToArray)(path2),
+            (0, _Path.pathToArray)(path4),
             inputValue,
             new _GraphQLError.GraphQLError(
               `Expected type "${type.name}" to be an object.`
@@ -13754,7 +13754,7 @@ var require_coerceInputValue = __commonJS({
             } else if ((0, _definition.isNonNullType)(field.type)) {
               const typeStr = (0, _inspect2.inspect)(field.type);
               onError(
-                (0, _Path.pathToArray)(path2),
+                (0, _Path.pathToArray)(path4),
                 inputValue,
                 new _GraphQLError.GraphQLError(
                   `Field "${field.name}" of required type "${typeStr}" was not provided.`
@@ -13767,7 +13767,7 @@ var require_coerceInputValue = __commonJS({
             fieldValue,
             field.type,
             onError,
-            (0, _Path.addPath)(path2, field.name, type.name)
+            (0, _Path.addPath)(path4, field.name, type.name)
           );
         }
         for (const fieldName of Object.keys(inputValue)) {
@@ -13777,7 +13777,7 @@ var require_coerceInputValue = __commonJS({
               Object.keys(type.getFields())
             );
             onError(
-              (0, _Path.pathToArray)(path2),
+              (0, _Path.pathToArray)(path4),
               inputValue,
               new _GraphQLError.GraphQLError(
                 `Field "${fieldName}" is not defined by type "${type.name}".` + (0, _didYouMean.didYouMean)(suggestions)
@@ -13789,7 +13789,7 @@ var require_coerceInputValue = __commonJS({
           const keys = Object.keys(coercedValue);
           if (keys.length !== 1) {
             onError(
-              (0, _Path.pathToArray)(path2),
+              (0, _Path.pathToArray)(path4),
               inputValue,
               new _GraphQLError.GraphQLError(
                 `Exactly one key must be specified for OneOf type "${type.name}".`
@@ -13800,7 +13800,7 @@ var require_coerceInputValue = __commonJS({
           const value = coercedValue[key];
           if (value === null) {
             onError(
-              (0, _Path.pathToArray)(path2).concat(key),
+              (0, _Path.pathToArray)(path4).concat(key),
               value,
               new _GraphQLError.GraphQLError(`Field "${key}" must be non-null.`)
             );
@@ -13814,10 +13814,10 @@ var require_coerceInputValue = __commonJS({
           parseResult = type.parseValue(inputValue);
         } catch (error) {
           if (error instanceof _GraphQLError.GraphQLError) {
-            onError((0, _Path.pathToArray)(path2), inputValue, error);
+            onError((0, _Path.pathToArray)(path4), inputValue, error);
           } else {
             onError(
-              (0, _Path.pathToArray)(path2),
+              (0, _Path.pathToArray)(path4),
               inputValue,
               new _GraphQLError.GraphQLError(
                 `Expected type "${type.name}". ` + error.message,
@@ -13831,7 +13831,7 @@ var require_coerceInputValue = __commonJS({
         }
         if (parseResult === void 0) {
           onError(
-            (0, _Path.pathToArray)(path2),
+            (0, _Path.pathToArray)(path4),
             inputValue,
             new _GraphQLError.GraphQLError(`Expected type "${type.name}".`)
           );
@@ -14072,11 +14072,11 @@ var require_values = __commonJS({
         coercedValues[varName] = (0, _coerceInputValue.coerceInputValue)(
           value,
           varType,
-          (path2, invalidValue, error) => {
+          (path4, invalidValue, error) => {
             let prefix = `Variable "$${varName}" got invalid value ` + (0, _inspect2.inspect)(invalidValue);
-            if (path2.length > 0) {
+            if (path4.length > 0) {
               prefix += ` at "${varName}${(0, _printPathArray.printPathArray)(
-                path2
+                path4
               )}"`;
             }
             onError(
@@ -16155,9 +16155,9 @@ var require_promiseReduce = __commonJS({
     });
     exports2.promiseReduce = promiseReduce;
     var _isPromise = require_isPromise();
-    function promiseReduce(values2, callbackFn, initialValue) {
+    function promiseReduce(values, callbackFn, initialValue) {
       let accumulator = initialValue;
-      for (const value of values2) {
+      for (const value of values) {
         accumulator = (0, _isPromise.isPromise)(accumulator) ? accumulator.then((resolved) => callbackFn(resolved, value)) : callbackFn(accumulator, value);
       }
       return accumulator;
@@ -16197,7 +16197,7 @@ var require_locatedError = __commonJS({
     exports2.locatedError = locatedError;
     var _toError = require_toError();
     var _GraphQLError = require_GraphQLError();
-    function locatedError(rawOriginalError, nodes, path2) {
+    function locatedError(rawOriginalError, nodes, path4) {
       var _nodes;
       const originalError = (0, _toError.toError)(rawOriginalError);
       if (isLocatedGraphQLError(originalError)) {
@@ -16207,7 +16207,7 @@ var require_locatedError = __commonJS({
         nodes: (_nodes = originalError.nodes) !== null && _nodes !== void 0 ? _nodes : nodes,
         source: originalError.source,
         positions: originalError.positions,
-        path: path2,
+        path: path4,
         originalError
       });
     }
@@ -16267,20 +16267,20 @@ var require_execute = __commonJS({
       get errors() {
         return this._errors;
       }
-      add(error, path2) {
-        if (this._hasNulledPosition(path2)) {
+      add(error, path4) {
+        if (this._hasNulledPosition(path4)) {
           return;
         }
-        this._errorPositions.add(path2);
+        this._errorPositions.add(path4);
         this._errors.push(error);
       }
       _hasNulledPosition(startPath) {
-        let path2 = startPath;
-        while (path2 !== void 0) {
-          if (this._errorPositions.has(path2)) {
+        let path4 = startPath;
+        while (path4 !== void 0) {
+          if (this._errorPositions.has(path4)) {
             return true;
           }
-          path2 = path2.prev;
+          path4 = path4.prev;
         }
         return this._errorPositions.has(void 0);
       }
@@ -16429,27 +16429,27 @@ var require_execute = __commonJS({
         rootType,
         operation.selectionSet
       );
-      const path2 = void 0;
+      const path4 = void 0;
       switch (operation.operation) {
         case _ast.OperationTypeNode.QUERY:
-          return executeFields(exeContext, rootType, rootValue, path2, rootFields);
+          return executeFields(exeContext, rootType, rootValue, path4, rootFields);
         case _ast.OperationTypeNode.MUTATION:
           return executeFieldsSerially(
             exeContext,
             rootType,
             rootValue,
-            path2,
+            path4,
             rootFields
           );
         case _ast.OperationTypeNode.SUBSCRIPTION:
-          return executeFields(exeContext, rootType, rootValue, path2, rootFields);
+          return executeFields(exeContext, rootType, rootValue, path4, rootFields);
       }
     }
-    function executeFieldsSerially(exeContext, parentType, sourceValue, path2, fields) {
+    function executeFieldsSerially(exeContext, parentType, sourceValue, path4, fields) {
       return (0, _promiseReduce.promiseReduce)(
         fields.entries(),
         (results, [responseName, fieldNodes]) => {
-          const fieldPath = (0, _Path.addPath)(path2, responseName, parentType.name);
+          const fieldPath = (0, _Path.addPath)(path4, responseName, parentType.name);
           const result = executeField(
             exeContext,
             parentType,
@@ -16472,12 +16472,12 @@ var require_execute = __commonJS({
         /* @__PURE__ */ Object.create(null)
       );
     }
-    function executeFields(exeContext, parentType, sourceValue, path2, fields) {
+    function executeFields(exeContext, parentType, sourceValue, path4, fields) {
       const results = /* @__PURE__ */ Object.create(null);
       let containsPromise = false;
       try {
         for (const [responseName, fieldNodes] of fields.entries()) {
-          const fieldPath = (0, _Path.addPath)(path2, responseName, parentType.name);
+          const fieldPath = (0, _Path.addPath)(path4, responseName, parentType.name);
           const result = executeField(
             exeContext,
             parentType,
@@ -16505,7 +16505,7 @@ var require_execute = __commonJS({
       }
       return (0, _promiseForObject.promiseForObject)(results);
     }
-    function executeField(exeContext, parentType, source, fieldNodes, path2) {
+    function executeField(exeContext, parentType, source, fieldNodes, path4) {
       var _fieldDef$resolve;
       const fieldDef = getFieldDef(exeContext.schema, parentType, fieldNodes[0]);
       if (!fieldDef) {
@@ -16518,7 +16518,7 @@ var require_execute = __commonJS({
         fieldDef,
         fieldNodes,
         parentType,
-        path2
+        path4
       );
       try {
         const args = (0, _values.getArgumentValues)(
@@ -16531,7 +16531,7 @@ var require_execute = __commonJS({
         let completed;
         if ((0, _isPromise.isPromise)(result)) {
           completed = result.then(
-            (resolved) => completeValue(exeContext, returnType, fieldNodes, info, path2, resolved)
+            (resolved) => completeValue(exeContext, returnType, fieldNodes, info, path4, resolved)
           );
         } else {
           completed = completeValue(
@@ -16539,7 +16539,7 @@ var require_execute = __commonJS({
             returnType,
             fieldNodes,
             info,
-            path2,
+            path4,
             result
           );
         }
@@ -16548,9 +16548,9 @@ var require_execute = __commonJS({
             const error = (0, _locatedError.locatedError)(
               rawError,
               fieldNodes,
-              (0, _Path.pathToArray)(path2)
+              (0, _Path.pathToArray)(path4)
             );
-            return handleFieldError(error, returnType, path2, exeContext);
+            return handleFieldError(error, returnType, path4, exeContext);
           });
         }
         return completed;
@@ -16558,18 +16558,18 @@ var require_execute = __commonJS({
         const error = (0, _locatedError.locatedError)(
           rawError,
           fieldNodes,
-          (0, _Path.pathToArray)(path2)
+          (0, _Path.pathToArray)(path4)
         );
-        return handleFieldError(error, returnType, path2, exeContext);
+        return handleFieldError(error, returnType, path4, exeContext);
       }
     }
-    function buildResolveInfo(exeContext, fieldDef, fieldNodes, parentType, path2) {
+    function buildResolveInfo(exeContext, fieldDef, fieldNodes, parentType, path4) {
       return {
         fieldName: fieldDef.name,
         fieldNodes,
         returnType: fieldDef.type,
         parentType,
-        path: path2,
+        path: path4,
         schema: exeContext.schema,
         fragments: exeContext.fragments,
         rootValue: exeContext.rootValue,
@@ -16577,14 +16577,14 @@ var require_execute = __commonJS({
         variableValues: exeContext.variableValues
       };
     }
-    function handleFieldError(error, returnType, path2, exeContext) {
+    function handleFieldError(error, returnType, path4, exeContext) {
       if ((0, _definition.isNonNullType)(returnType)) {
         throw error;
       }
-      exeContext.collectedErrors.add(error, path2);
+      exeContext.collectedErrors.add(error, path4);
       return null;
     }
-    function completeValue(exeContext, returnType, fieldNodes, info, path2, result) {
+    function completeValue(exeContext, returnType, fieldNodes, info, path4, result) {
       if (result instanceof Error) {
         throw result;
       }
@@ -16594,7 +16594,7 @@ var require_execute = __commonJS({
           returnType.ofType,
           fieldNodes,
           info,
-          path2,
+          path4,
           result
         );
         if (completed === null) {
@@ -16613,7 +16613,7 @@ var require_execute = __commonJS({
           returnType,
           fieldNodes,
           info,
-          path2,
+          path4,
           result
         );
       }
@@ -16626,7 +16626,7 @@ var require_execute = __commonJS({
           returnType,
           fieldNodes,
           info,
-          path2,
+          path4,
           result
         );
       }
@@ -16636,7 +16636,7 @@ var require_execute = __commonJS({
           returnType,
           fieldNodes,
           info,
-          path2,
+          path4,
           result
         );
       }
@@ -16645,7 +16645,7 @@ var require_execute = __commonJS({
         "Cannot complete value of unexpected output type: " + (0, _inspect2.inspect)(returnType)
       );
     }
-    function completeListValue(exeContext, returnType, fieldNodes, info, path2, result) {
+    function completeListValue(exeContext, returnType, fieldNodes, info, path4, result) {
       if (!(0, _isIterableObject.isIterableObject)(result)) {
         throw new _GraphQLError.GraphQLError(
           `Expected Iterable, but did not find one for field "${info.parentType.name}.${info.fieldName}".`
@@ -16654,7 +16654,7 @@ var require_execute = __commonJS({
       const itemType = returnType.ofType;
       let containsPromise = false;
       const completedResults = Array.from(result, (item, index) => {
-        const itemPath = (0, _Path.addPath)(path2, index, void 0);
+        const itemPath = (0, _Path.addPath)(path4, index, void 0);
         try {
           let completedItem;
           if ((0, _isPromise.isPromise)(item)) {
@@ -16712,7 +16712,7 @@ var require_execute = __commonJS({
       }
       return serializedResult;
     }
-    function completeAbstractValue(exeContext, returnType, fieldNodes, info, path2, result) {
+    function completeAbstractValue(exeContext, returnType, fieldNodes, info, path4, result) {
       var _returnType$resolveTy;
       const resolveTypeFn = (_returnType$resolveTy = returnType.resolveType) !== null && _returnType$resolveTy !== void 0 ? _returnType$resolveTy : exeContext.typeResolver;
       const contextValue = exeContext.contextValue;
@@ -16731,7 +16731,7 @@ var require_execute = __commonJS({
             ),
             fieldNodes,
             info,
-            path2,
+            path4,
             result
           )
         );
@@ -16748,7 +16748,7 @@ var require_execute = __commonJS({
         ),
         fieldNodes,
         info,
-        path2,
+        path4,
         result
       );
     }
@@ -16796,7 +16796,7 @@ var require_execute = __commonJS({
       }
       return runtimeType;
     }
-    function completeObjectValue(exeContext, returnType, fieldNodes, info, path2, result) {
+    function completeObjectValue(exeContext, returnType, fieldNodes, info, path4, result) {
       const subFieldNodes = collectSubfields(exeContext, returnType, fieldNodes);
       if (returnType.isTypeOf) {
         const isTypeOf = returnType.isTypeOf(result, exeContext.contextValue, info);
@@ -16809,7 +16809,7 @@ var require_execute = __commonJS({
               exeContext,
               returnType,
               result,
-              path2,
+              path4,
               subFieldNodes
             );
           });
@@ -16818,7 +16818,7 @@ var require_execute = __commonJS({
           throw invalidReturnTypeError(returnType, result, fieldNodes);
         }
       }
-      return executeFields(exeContext, returnType, result, path2, subFieldNodes);
+      return executeFields(exeContext, returnType, result, path4, subFieldNodes);
     }
     function invalidReturnTypeError(returnType, result, fieldNodes) {
       return new _GraphQLError.GraphQLError(
@@ -17902,13 +17902,13 @@ var require_subscribe = __commonJS({
           }
         );
       }
-      const path2 = (0, _Path.addPath)(void 0, responseName, rootType.name);
+      const path4 = (0, _Path.addPath)(void 0, responseName, rootType.name);
       const info = (0, _execute.buildResolveInfo)(
         exeContext,
         fieldDef,
         fieldNodes,
         rootType,
-        path2
+        path4
       );
       try {
         var _fieldDef$subscribe;
@@ -17928,7 +17928,7 @@ var require_subscribe = __commonJS({
         throw (0, _locatedError.locatedError)(
           error,
           fieldNodes,
-          (0, _Path.pathToArray)(path2)
+          (0, _Path.pathToArray)(path4)
         );
       }
     }
@@ -19872,10 +19872,10 @@ ${operationTypes.join("\n")}
       return printDescription(type) + "union " + type.name + possibleTypes;
     }
     function printEnum(type) {
-      const values2 = type.getValues().map(
+      const values = type.getValues().map(
         (value, i) => printDescription(value, "  ", !i) + "  " + value.name + printDeprecated(value.deprecationReason)
       );
-      return printDescription(type) + `enum ${type.name}` + printBlock(values2);
+      return printDescription(type) + `enum ${type.name}` + printBlock(values);
     }
     function printInputObject(type) {
       const fields = Object.values(type.getFields()).map(
@@ -22253,50 +22253,87 @@ var require_graphql2 = __commonJS({
 
 // src/action/index.js
 var import_node_fs3 = __toESM(require("node:fs"), 1);
-var import_node_process = __toESM(require("node:process"), 1);
+var import_node_path3 = __toESM(require("node:path"), 1);
+var import_node_crypto = require("node:crypto");
+
+// src/version.js
+var TOOL_VERSION = "0.2.1";
 
 // src/analyzer/index.js
 var import_node_fs2 = __toESM(require("node:fs"), 1);
-var import_node_path = __toESM(require("node:path"), 1);
+var import_node_path2 = __toESM(require("node:path"), 1);
 
 // src/config/index.js
 var import_node_fs = __toESM(require("node:fs"), 1);
+var import_node_path = __toESM(require("node:path"), 1);
 var import_toml = __toESM(require_toml(), 1);
+function regularFile(root, file) {
+  const relative = import_node_path.default.relative(root, file);
+  if (relative.startsWith(`..${import_node_path.default.sep}`) || relative === ".." || import_node_path.default.isAbsolute(relative)) throw new Error("Configuration must be inside the scan root");
+  let current = root;
+  for (const part of relative.split(import_node_path.default.sep)) {
+    current = import_node_path.default.join(current, part);
+    if (import_node_fs.default.lstatSync(current).isSymbolicLink()) throw new Error("Symbolic links are not supported configuration inputs");
+  }
+  const stat = import_node_fs.default.lstatSync(file);
+  if (!stat.isFile() || stat.size > 1024 * 1024) throw new Error("Configuration must be a regular file up to 1 MiB");
+}
 function parseConfig(file) {
-  const source = import_node_fs.default.readFileSync(file, "utf8");
-  const data = import_toml.default.parse(source);
-  const scopes = String(data.access_scopes?.scopes ?? "").split(",").map((s) => s.trim()).filter(Boolean);
-  const optional = Array.isArray(data.access_scopes?.optional_scopes) ? data.access_scopes.optional_scopes.map(String) : [];
-  const normalize = (values2) => [...new Set(values2.map((s) => s.trim()).filter(Boolean))].sort();
-  return { required: normalize(scopes), optional: normalize(optional), raw: { required: scopes, optional } };
+  const stat = import_node_fs.default.lstatSync(file);
+  if (!stat.isFile() || stat.size > 1024 * 1024) throw new Error("Configuration must be a regular file up to 1 MiB");
+  let data;
+  try {
+    data = import_toml.default.parse(import_node_fs.default.readFileSync(file, "utf8"));
+  } catch {
+    throw new Error("Invalid Shopify app TOML; contents were not printed");
+  }
+  const section = data.access_scopes;
+  if (!section || typeof section.scopes !== "string") throw new Error("[access_scopes].scopes must be a comma-separated string");
+  if (section.optional_scopes !== void 0 && (!Array.isArray(section.optional_scopes) || section.optional_scopes.some((s) => typeof s !== "string" || !s.trim()))) throw new Error("[access_scopes].optional_scopes must be an array of non-empty strings");
+  const scopes = section.scopes.split(",").map((s) => s.trim()).filter(Boolean);
+  const optional = section.optional_scopes ?? [];
+  const normalize = (values) => [...new Set(values.map((s) => s.trim()).filter(Boolean))].sort();
+  const required = normalize(scopes), normalizedOptional = normalize(optional);
+  if (required.some((s) => normalizedOptional.includes(s))) throw new Error("A scope cannot be both required and optional");
+  return { required, optional: normalizedOptional, raw: { required: scopes, optional } };
 }
 
 // src/graphql/index.js
 var import_graphql = __toESM(require_graphql2(), 1);
-function parseGraphQL(source, file) {
-  const document = (0, import_graphql.parse)(source, { noLocation: false });
-  const operations = [];
-  const collectFields = (selectionSet, parentPath = "") => (selectionSet?.selections ?? []).filter((selection) => selection.kind === import_graphql.Kind.FIELD).flatMap((field) => {
-    const path2 = parentPath ? `${parentPath}.${field.name.value}` : field.name.value;
-    return [{ name: field.name.value, path: path2, line: field.loc?.startToken?.line ?? 1, column: field.loc?.startToken?.column ?? 1 }, ...collectFields(field.selectionSet, path2)];
+function parseGraphQL(source, file, lineOffset = 0) {
+  const document = (0, import_graphql.parse)(source, { noLocation: false, maxTokens: 5e4 });
+  const fragments = new Map(document.definitions.filter((d) => d.kind === import_graphql.Kind.FRAGMENT_DEFINITION).map((d) => [d.name.value, d]));
+  let visited = 0;
+  const collectFields = (selectionSet, parentPath = "", stack = []) => (selectionSet?.selections ?? []).flatMap((selection) => {
+    if (++visited > 5e4) throw new Error("GraphQL selection limit exceeded");
+    if (selection.kind === import_graphql.Kind.INLINE_FRAGMENT) return collectFields(selection.selectionSet, parentPath, stack);
+    if (selection.kind === import_graphql.Kind.FRAGMENT_SPREAD) {
+      const name = selection.name.value;
+      if (stack.includes(name) || !fragments.has(name)) throw new Error("Unresolved or cyclic GraphQL fragment");
+      return collectFields(fragments.get(name).selectionSet, parentPath, [...stack, name]);
+    }
+    const fieldPath = parentPath ? `${parentPath}.${selection.name.value}` : selection.name.value;
+    return [{ name: selection.name.value, path: fieldPath, line: (selection.loc?.startToken?.line ?? 1) + lineOffset, column: selection.loc?.startToken?.column ?? 1 }, ...collectFields(selection.selectionSet, fieldPath, stack)];
   });
-  (0, import_graphql.visit)(document, { OperationDefinition(node) {
-    const fields = collectFields(node.selectionSet);
-    operations.push({ type: node.operation, name: node.name?.value ?? null, fields, file, line: node.loc?.startToken?.line ?? 1 });
-  } });
-  return operations;
+  return document.definitions.filter((d) => d.kind === import_graphql.Kind.OPERATION_DEFINITION).map((node) => ({ type: node.operation, name: node.name?.value ?? null, fields: collectFields(node.selectionSet), file, line: (node.loc?.startToken?.line ?? 1) + lineOffset }));
 }
 function extractGraphQL(text, file) {
-  const documents = [];
-  if (file.endsWith(".graphql") || file.endsWith(".gql")) documents.push(text);
-  const patterns = [/#graphql\s*([\s\S]*?)(?=`|\`\`\`|\n\s*\)|;)/g, /(?:graphql|gql)\s*\(\s*`([\s\S]*?)`/g, /query\s*[:=]\s*`([\s\S]*?)`/g];
-  for (const pattern of patterns) for (const match of text.matchAll(pattern)) documents.push(match[1]);
+  const documents = /* @__PURE__ */ new Map();
+  if (/\.(graphql|gql)$/i.test(file)) documents.set(0, text);
+  else {
+    const patterns = [/#graphql\s*([\s\S]*?)(?=`)/g, /(?:graphql|gql)\s*(?:\(\s*)?`([\s\S]*?)`/g, /query\s*[:=]\s*`([\s\S]*?)`/g];
+    for (const pattern of patterns) for (const match of text.matchAll(pattern)) {
+      const offset = match.index + match[0].indexOf(match[1]);
+      const source = match[1].replace(/^#graphql\s*/, "");
+      if (![...documents.values()].some((d) => d.replace(/^#graphql\s*/, "") === source)) documents.set(offset, match[1]);
+    }
+  }
   const result = [];
-  for (const document of documents) {
+  for (const [offset, source] of documents) {
     try {
-      result.push(...parseGraphQL(document, file));
+      result.push(...parseGraphQL(source, file, text.slice(0, offset).split("\n").length - 1));
     } catch {
-      result.push({ type: "unknown", name: null, fields: [], file, line: 1, parseError: true });
+      result.push({ type: "unknown", name: null, fields: [], file, line: text.slice(0, offset).split("\n").length, parseError: true });
     }
   }
   return result;
@@ -22313,6 +22350,7 @@ var rule = (ruleId, operation, anyOf, source, notes = "", introduced = "2023-01"
   ruleId,
   api: "admin-graphql",
   operation,
+  operationType: source.includes("/mutations/") ? "mutation" : "query",
   requires: { anyOf },
   introduced,
   lastVerified: EVIDENCE_VERSION,
@@ -22322,38 +22360,39 @@ var rule = (ruleId, operation, anyOf, source, notes = "", introduced = "2023-01"
   notes
 });
 var EVIDENCE_REGISTRY = [
-  rule("SG-SCOPE-001", "productCreate", ["write_products"], "https://shopify.dev/docs/api/admin-graphql/latest/mutations/productcreate"),
-  rule("SG-SCOPE-001", "productUpdate", ["write_products"], "https://shopify.dev/docs/api/admin-graphql/latest/mutations/productupdate"),
-  rule("SG-SCOPE-001", "productSet", ["write_products"], "https://shopify.dev/docs/api/admin-graphql/latest/mutations/productset"),
-  rule("SG-SCOPE-001", "productOptionsCreate", ["write_products"], "https://shopify.dev/docs/api/admin-graphql/latest/mutations/productoptionscreate"),
-  rule("SG-SCOPE-001", "collectionCreate", ["write_products"], "https://shopify.dev/docs/api/admin-graphql/latest/mutations/collectioncreate"),
-  rule("SG-SCOPE-001", "products", ["read_products"], "https://shopify.dev/docs/api/admin-graphql/latest/queries/products"),
-  rule("SG-SCOPE-001", "product", ["read_products"], "https://shopify.dev/docs/api/admin-graphql/latest/queries/product"),
-  rule("SG-SCOPE-001", "productVariants", ["read_products"], "https://shopify.dev/docs/api/admin-graphql/latest/queries/productvariants"),
-  rule("SG-SCOPE-001", "orders", ["read_orders"], "https://shopify.dev/docs/api/admin-graphql/latest/queries/orders", "read_orders covers the standard recent-order window; older orders require read_all_orders."),
-  rule("SG-SCOPE-001", "order", ["read_orders"], "https://shopify.dev/docs/api/admin-graphql/latest/queries/order", "read_orders covers the standard recent-order window; older orders require read_all_orders."),
-  rule("SG-SCOPE-001", "customers", ["read_customers"], "https://shopify.dev/docs/api/admin-graphql/latest/queries/customers"),
-  rule("SG-SCOPE-001", "customer", ["read_customers"], "https://shopify.dev/docs/api/admin-graphql/latest/queries/customer"),
-  rule("SG-SCOPE-001", "inventoryItems", ["read_inventory"], "https://shopify.dev/docs/api/admin-graphql/latest/queries/inventoryitems"),
-  rule("SG-SCOPE-001", "inventoryLevels", ["read_inventory"], "https://shopify.dev/docs/api/admin-graphql/latest/queries/inventorylevels"),
-  rule("SG-SCOPE-001", "locations", ["read_locations"], "https://shopify.dev/docs/api/admin-graphql/latest/queries/locations"),
-  rule("SG-SCOPE-001", "themes", ["read_themes"], "https://shopify.dev/docs/api/admin-graphql/latest/queries/themes"),
-  rule("SG-SCOPE-001", "files", ["read_files"], "https://shopify.dev/docs/api/admin-graphql/latest/queries/files"),
-  rule("SG-SCOPE-001", "metaobjects", ["read_metaobjects"], "https://shopify.dev/docs/api/admin-graphql/latest/queries/metaobjects", "App-owned metaobjects may have special access behavior; this rule is intentionally conservative for merchant-owned access."),
-  rule("SG-SCOPE-001", "metaobject", ["read_metaobjects"], "https://shopify.dev/docs/api/admin-graphql/latest/queries/metaobject", "App-owned metaobjects may have special access behavior; this rule is intentionally conservative for merchant-owned access."),
-  rule("SG-SCOPE-001", "cartTransformCreate", ["write_cart_transforms"], "https://shopify.dev/docs/api/admin-graphql/latest/mutations/carttransformcreate"),
-  rule("SG-SCOPE-001", "analyticsAnnotationCreate", ["read_analytics_annotations", "write_analytics_annotations"], "https://shopify.dev/docs/api/admin-graphql/2026-10/mutations/analyticsannotationcreate", "", "2026-10"),
-  rule("SG-SCOPE-001", "analyticsAnnotationUpdate", ["read_analytics_annotations", "write_analytics_annotations"], "https://shopify.dev/docs/api/admin-graphql/2026-10/mutations/analyticsannotationupdate", "", "2026-10"),
-  rule("SG-SCOPE-001", "analyticsAnnotationDelete", ["read_analytics_annotations", "write_analytics_annotations"], "https://shopify.dev/docs/api/admin-graphql/2026-10/mutations/analyticsannotationdelete", "", "2026-10"),
+  rule("SG-SCOPE-001", "productCreate", ["write_products"], "https://shopify.dev/docs/api/admin-graphql/2026-10/mutations/productcreate"),
+  rule("SG-SCOPE-001", "productUpdate", ["write_products"], "https://shopify.dev/docs/api/admin-graphql/2026-10/mutations/productupdate"),
+  rule("SG-SCOPE-001", "productSet", ["write_products"], "https://shopify.dev/docs/api/admin-graphql/2026-10/mutations/productset"),
+  rule("SG-SCOPE-001", "productOptionsCreate", ["write_products"], "https://shopify.dev/docs/api/admin-graphql/2026-10/mutations/productoptionscreate"),
+  rule("SG-SCOPE-001", "collectionCreate", ["write_products"], "https://shopify.dev/docs/api/admin-graphql/2026-10/mutations/collectioncreate"),
+  rule("SG-SCOPE-001", "products", ["read_products"], "https://shopify.dev/docs/api/admin-graphql/2026-10/queries/products"),
+  rule("SG-SCOPE-001", "product", ["read_products"], "https://shopify.dev/docs/api/admin-graphql/2026-10/queries/product"),
+  rule("SG-SCOPE-001", "productVariants", ["read_products"], "https://shopify.dev/docs/api/admin-graphql/2026-10/queries/productvariants"),
+  rule("SG-SCOPE-001", "orders", ["read_orders", "read_marketplace_orders", "read_buyer_membership_orders", "read_quick_sale"], "https://shopify.dev/docs/api/admin-graphql/2026-10/queries/orders", "read_orders covers the standard recent-order window; older orders require read_all_orders."),
+  rule("SG-SCOPE-001", "order", ["read_orders", "read_marketplace_orders", "read_buyer_membership_orders", "read_quick_sale"], "https://shopify.dev/docs/api/admin-graphql/2026-10/queries/order", "read_orders covers the standard recent-order window; older orders require read_all_orders."),
+  rule("SG-SCOPE-001", "customers", ["read_customers"], "https://shopify.dev/docs/api/admin-graphql/2026-10/queries/customers"),
+  rule("SG-SCOPE-001", "customer", ["read_customers"], "https://shopify.dev/docs/api/admin-graphql/2026-10/queries/customer"),
+  rule("SG-SCOPE-001", "inventoryItem", ["read_inventory", "read_products"], "https://shopify.dev/docs/api/admin-graphql/2026-10/queries/inventoryItem"),
+  rule("SG-SCOPE-001", "inventoryItems.nodes.inventoryLevels", ["read_inventory"], "https://shopify.dev/docs/api/admin-graphql/2026-10/objects/InventoryLevel"),
+  rule("SG-SCOPE-001", "inventoryItem.inventoryLevels", ["read_inventory"], "https://shopify.dev/docs/api/admin-graphql/2026-10/objects/InventoryLevel"),
+  rule("SG-SCOPE-001", "inventoryItems", ["read_inventory", "read_products"], "https://shopify.dev/docs/api/admin-graphql/2026-10/queries/inventoryitems"),
+  rule("SG-SCOPE-001", "locations", ["read_locations", "read_inventory", "read_markets_home"], "https://shopify.dev/docs/api/admin-graphql/2026-10/queries/locations"),
+  rule("SG-SCOPE-001", "themes", ["read_themes"], "https://shopify.dev/docs/api/admin-graphql/2026-10/queries/themes"),
+  rule("SG-SCOPE-001", "files", ["read_files"], "https://shopify.dev/docs/api/admin-graphql/2026-10/queries/files"),
+  rule("SG-SCOPE-001", "metaobjects", ["read_metaobjects"], "https://shopify.dev/docs/api/admin-graphql/2026-10/queries/metaobjects", "App-owned metaobjects may have special access behavior; this rule is intentionally conservative for merchant-owned access."),
+  rule("SG-SCOPE-001", "metaobject", ["read_metaobjects"], "https://shopify.dev/docs/api/admin-graphql/2026-10/queries/metaobject", "App-owned metaobjects may have special access behavior; this rule is intentionally conservative for merchant-owned access."),
+  rule("SG-SCOPE-001", "cartTransformCreate", ["write_cart_transforms"], "https://shopify.dev/docs/api/admin-graphql/2026-10/mutations/carttransformcreate"),
+  rule("SG-SCOPE-001", "analyticsAnnotationCreate", ["write_analytics_annotations"], "https://shopify.dev/docs/api/admin-graphql/2026-10/mutations/analyticsannotationcreate", "", "2026-10"),
+  rule("SG-SCOPE-001", "analyticsAnnotationUpdate", ["write_analytics_annotations"], "https://shopify.dev/docs/api/admin-graphql/2026-10/mutations/analyticsannotationupdate", "", "2026-10"),
+  rule("SG-SCOPE-001", "analyticsAnnotationDelete", ["write_analytics_annotations"], "https://shopify.dev/docs/api/admin-graphql/2026-10/mutations/analyticsannotationdelete", "", "2026-10"),
   rule("SG-SCOPE-001", "shop.analyticsAnnotations", ["read_analytics_annotations", "write_analytics_annotations"], "https://shopify.dev/docs/api/admin-graphql/2026-10/objects/analyticsannotation", "The nested Shop.analyticsAnnotations field is statically mapped; unrelated AnalyticsAnnotation type selections are intentionally not inferred.", "2026-10"),
   rule("SG-SCOPE-001", "analyticsTargets", ["read_reports", "write_reports"], "https://shopify.dev/docs/api/admin-graphql/2026-10/queries/analyticstargets", "", "2026-10"),
-  rule("SG-SCOPE-001", "analyticsTargetCreate", ["read_reports", "write_reports"], "https://shopify.dev/docs/api/admin-graphql/2026-10/mutations/analyticstargetcreate", "", "2026-10"),
-  rule("SG-SCOPE-001", "analyticsTargetUpdate", ["read_reports", "write_reports"], "https://shopify.dev/docs/api/admin-graphql/2026-10/mutations/analyticstargetupdate", "", "2026-10"),
-  rule("SG-SCOPE-001", "analyticsTargetsDelete", ["read_reports", "write_reports"], "https://shopify.dev/docs/api/admin-graphql/2026-10/mutations/analyticstargetsdelete", "", "2026-10"),
+  rule("SG-SCOPE-001", "analyticsTargetCreate", ["write_reports"], "https://shopify.dev/docs/api/admin-graphql/2026-10/mutations/analyticstargetcreate", "", "2026-10"),
+  rule("SG-SCOPE-001", "analyticsTargetUpdate", ["write_reports"], "https://shopify.dev/docs/api/admin-graphql/2026-10/mutations/analyticstargetupdate", "", "2026-10"),
+  rule("SG-SCOPE-001", "analyticsTargetsDelete", ["write_reports"], "https://shopify.dev/docs/api/admin-graphql/2026-10/mutations/analyticstargetsdelete", "", "2026-10"),
   rule("SG-SCOPE-001", "shopifyqlQuery", ["read_reports", "write_reports"], "https://shopify.dev/docs/api/admin-graphql/2026-10/queries/shopifyqlquery", "", "2026-10"),
   rule("SG-SCOPE-001", "rollout", ["read_rollouts"], "https://shopify.dev/docs/api/admin-graphql/2026-10/queries/rollout", "Reading protected discount payloads within a rollout can additionally require read_discounts; that resource-specific scope is not inferred here.", "2026-10"),
-  rule("SG-SCOPE-001", "rollouts", ["read_rollouts"], "https://shopify.dev/docs/api/admin-graphql/2026-10/queries/rollouts", "Reading protected discount payloads within a rollout can additionally require read_discounts; that resource-specific scope is not inferred here.", "2026-10"),
-  rule("SG-SCOPE-001", "discounts.rollouts", ["read_rollouts"], "https://shopify.dev/docs/api/admin-graphql/2026-10/objects/discount", "The rollout connection is mapped to read_rollouts; the parent discount resource may require its own access scope.", "2026-10")
+  rule("SG-SCOPE-001", "rollouts", ["read_rollouts"], "https://shopify.dev/docs/api/admin-graphql/2026-10/queries/rollouts", "Reading protected discount payloads within a rollout can additionally require read_discounts; that resource-specific scope is not inferred here.", "2026-10")
 ];
 var IMPLIED_SCOPES = /* @__PURE__ */ new Map([
   ["write_products", "read_products"],
@@ -22369,59 +22408,74 @@ var IMPLIED_SCOPES = /* @__PURE__ */ new Map([
   ["write_analytics_annotations", "read_analytics_annotations"],
   ["write_reports", "read_reports"]
 ]);
-function rulesFor(operation) {
-  return EVIDENCE_REGISTRY.filter((item) => item.operation === operation);
+function rulesFor(operation, type) {
+  return EVIDENCE_REGISTRY.filter((item) => item.operation === operation && (!type || item.operationType === type));
 }
 
 // src/analyzer/index.js
 var DEFAULT_IGNORES = /* @__PURE__ */ new Set([".git", "node_modules", "vendor", "dist", "build", "coverage", ".cache", "tmp", "fixtures"]);
 var CODE_EXTENSIONS = /* @__PURE__ */ new Set([".js", ".jsx", ".ts", ".tsx", ".graphql", ".gql"]);
 var MAX_FILE_BYTES = 1024 * 1024;
-function walk(root, options = {}, current = root, out = []) {
-  if (out.length >= (options.maxFiles ?? 2e3)) return out;
-  for (const entry of import_node_fs2.default.readdirSync(current, { withFileTypes: true })) {
-    if (entry.name.startsWith(".") && entry.name !== ".graphqlrc") continue;
-    const full = import_node_path.default.join(current, entry.name);
-    if (entry.isDirectory()) {
-      if (!DEFAULT_IGNORES.has(entry.name)) walk(root, options, full, out);
+function walk(root, skipped, current = root, out = []) {
+  for (const entry of import_node_fs2.default.readdirSync(current, { withFileTypes: true }).sort((a, b) => a.name.localeCompare(b.name))) {
+    if (entry.name.startsWith(".")) continue;
+    const full = import_node_path2.default.join(current, entry.name);
+    if (entry.isSymbolicLink()) {
+      skipped.push({ file: import_node_path2.default.relative(root, full), reason: "Symbolic link" });
       continue;
     }
-    if (!CODE_EXTENSIONS.has(import_node_path.default.extname(entry.name).toLowerCase())) continue;
-    const stat = import_node_fs2.default.statSync(full);
-    if (stat.size > (options.maxFileBytes ?? MAX_FILE_BYTES)) continue;
+    if (entry.isDirectory()) {
+      if (!DEFAULT_IGNORES.has(entry.name)) walk(root, skipped, full, out);
+      continue;
+    }
+    if (!entry.isFile() || !CODE_EXTENSIONS.has(import_node_path2.default.extname(entry.name).toLowerCase())) continue;
+    if (out.length >= 2e3 || import_node_fs2.default.lstatSync(full).size > MAX_FILE_BYTES) {
+      skipped.push({ file: import_node_path2.default.relative(root, full), reason: "Analysis limit" });
+      continue;
+    }
     out.push(full);
   }
   return out;
 }
 function finding(ruleId, severity, confidence, scope, file, line, explanation, evidence, source, remediation) {
-  return { ruleId, severity, confidence, scope, file: file ? import_node_path.default.relative(process.cwd(), file).replaceAll(import_node_path.default.sep, "/") : null, line: line ?? null, explanation, evidence, source, remediation };
+  return { ruleId, severity, confidence, scope, file: file ?? null, line: line ?? null, explanation, evidence, source, remediation };
 }
 function audit({ root = ".", configPath, include, exclude = [] } = {}) {
-  const absoluteRoot = import_node_path.default.resolve(root);
-  const configFile = configPath ? import_node_path.default.resolve(configPath) : import_node_fs2.default.readdirSync(absoluteRoot).find((f) => /^shopify\.app(?:\..+)?\.toml$/.test(f));
-  const config = configFile ? parseConfig(import_node_path.default.isAbsolute(configFile) ? configFile : import_node_path.default.join(absoluteRoot, configFile)) : { required: [], optional: [], raw: { required: [], optional: [] } };
-  const files = walk(absoluteRoot, { maxFiles: 2e3 }).filter((file) => !exclude.some((value) => file.includes(value)) && (!include || file.includes(include)));
+  const absoluteRoot = import_node_path2.default.resolve(root);
+  if (!import_node_fs2.default.lstatSync(absoluteRoot).isDirectory()) throw new Error("Scan root must be a regular directory");
+  const candidates = import_node_fs2.default.readdirSync(absoluteRoot).filter((f) => /^shopify\.app(?:\..+)?\.toml$/.test(f)).sort();
+  if (!configPath && candidates.length > 1 && !candidates.includes("shopify.app.toml")) throw new Error("Multiple app configurations found; select one with --config");
+  const selected = configPath ?? (candidates.includes("shopify.app.toml") ? "shopify.app.toml" : candidates[0]);
+  if (!selected) throw new Error("Shopify app configuration not found; select one with --config");
+  const configFile = import_node_path2.default.resolve(absoluteRoot, selected);
+  regularFile(absoluteRoot, configFile);
+  const config = parseConfig(configFile);
+  const skipped = [];
+  const files = walk(absoluteRoot, skipped).filter((file) => !exclude.some((value) => file.includes(value)) && (!include || file.includes(include)));
   const observations = [], findings = [], unknown = [];
   for (const file of files) {
     const text = import_node_fs2.default.readFileSync(file, "utf8");
-    const surface = /\/admin\/api\/[^/]+\/graphql\.json|admin\.graphql|authenticate\.admin|currentAppInstallation/.test(text) || /\.(graphql|gql)$/.test(file) ? "admin-graphql" : /storefront|unauthenticated_read_/.test(text) ? "storefront" : null;
+    const surface = /\/admin\/api\/[^/]+\/graphql\.json|admin\.graphql|authenticate\.admin|currentAppInstallation/.test(text) ? "admin-graphql" : /storefront|unauthenticated_read_/.test(text) ? "storefront" : /\.(graphql|gql)$/i.test(file) ? "admin-graphql" : null;
     if (!surface && /graphql|shopify/i.test(text)) {
-      unknown.push({ file: import_node_path.default.relative(absoluteRoot, file), reason: "Shopify-related code could not be assigned to a supported API surface." });
+      unknown.push({ file: import_node_path2.default.relative(absoluteRoot, file), reason: "Shopify-related code could not be assigned to a supported API surface." });
       continue;
     }
     if (surface === "storefront") continue;
     const operations = extractGraphQL(text, file);
     if (surface === "admin-graphql" && operations.length === 0 && /(admin\.graphql|client\.(query|request)|graphql\s*\()/.test(text)) {
-      unknown.push({ file: import_node_path.default.relative(absoluteRoot, file), line: 1, reason: "Shopify Admin GraphQL client usage was found, but the query was not a static document." });
+      unknown.push({ file: import_node_path2.default.relative(absoluteRoot, file), line: 1, reason: "Shopify Admin GraphQL client usage was found, but the query was not a static document." });
     }
     for (const op of operations) {
       if (op.parseError) {
-        unknown.push({ file: import_node_path.default.relative(absoluteRoot, file), line: op.line, reason: "GraphQL-like text could not be parsed safely." });
+        unknown.push({ file: import_node_path2.default.relative(absoluteRoot, file), line: op.line, reason: "GraphQL-like text could not be parsed safely." });
         continue;
       }
       for (const field of op.fields) {
-        const rules = rulesFor(field.path);
-        if (!rules.length) continue;
+        const rules = rulesFor(field.path, op.type);
+        if (!rules.length) {
+          if (!field.path.includes(".") && !["shop", "__typename"].includes(field.path)) unknown.push({ file: import_node_path2.default.relative(absoluteRoot, file), line: field.line, reason: "GraphQL root operation is outside the bundled scope registry." });
+          continue;
+        }
         for (const item of rules) observations.push({ ...item, operationType: op.type, file, line: field.line, operationName: op.name });
       }
     }
@@ -22430,46 +22484,76 @@ function audit({ root = ".", configPath, include, exclude = [] } = {}) {
   const satisfied = (scope) => config.required.includes(scope) || [...config.required].some((s) => IMPLIED_SCOPES.get(s) === scope);
   for (const observation of observations) {
     if (observation.requires.anyOf.some(satisfied)) continue;
-    const scope = observation.requires.anyOf[0];
+    const optionalScope = observation.requires.anyOf.find((s) => config.optional.includes(s) || config.optional.some((write) => IMPLIED_SCOPES.get(write) === s));
+    const scope = optionalScope ?? observation.requires.anyOf[0];
     const severity = "high";
-    findings.push(finding(config.optional.includes(scope) ? "SG-SCOPE-002" : "SG-SCOPE-001", severity, observation.confidence, scope, observation.file, observation.line, config.optional.includes(scope) ? `The code evidences ${scope}, but it is declared optional.` : `The ${observation.operation} operation requires ${scope}, which is not declared.`, `${observation.operation} ${observation.operationType}`, observation.source, `Declare ${scope} as required, or make the code path conditional on an optional-scope request.`));
+    findings.push(finding(Boolean(optionalScope) ? "SG-SCOPE-002" : "SG-SCOPE-001", severity, observation.confidence, scope, import_node_path2.default.relative(absoluteRoot, observation.file).replaceAll(import_node_path2.default.sep, "/"), observation.line, Boolean(optionalScope) ? `The code evidences ${scope}, but it is declared optional.` : `The ${observation.operation} operation requires one of ${observation.requires.anyOf.join(", ")}, and none is declared as required.`, `${observation.operation} ${observation.operationType}`, observation.source, `Declare ${scope} as required, or make the code path conditional on an optional-scope request.`));
   }
-  for (const [write, read] of IMPLIED_SCOPES) if (config.required.includes(write) && (config.required.includes(read) || config.optional.includes(read))) findings.push(finding("SG-SCOPE-003", "medium", "high", read, configFile, null, `${write} already grants read access to this resource; the separate ${read} declaration is redundant.`, `${write} implies ${read}`, EVIDENCE_SOURCES.scopes, `Remove ${read} from the declarations unless you intentionally replace ${write}.`));
-  for (const scope of config.required) if (!observedScopes.has(scope) && ![...observedScopes].some((s) => IMPLIED_SCOPES.get(s) === scope) && ![...IMPLIED_SCOPES.entries()].some(([write, read]) => write === scope && observedScopes.has(read))) findings.push(finding("SG-SCOPE-004", "low", "high", scope, configFile, null, `No supported usage requiring ${scope} was evidenced.`, "No matching supported operation found", EVIDENCE_SOURCES.scopes, `Review whether ${scope} is still needed; static analysis cannot prove it is unused.`));
-  for (const scope of config.optional) if (!observedScopes.has(scope)) findings.push(finding("SG-SCOPE-004", "low", "high", scope, configFile, null, `No supported usage requiring optional scope ${scope} was evidenced.`, "No matching supported operation found", EVIDENCE_SOURCES.scopes, `Review the optional feature path; this result does not prove the scope is unused.`));
+  for (const [write, read] of IMPLIED_SCOPES) if (config.required.includes(write) && (config.required.includes(read) || config.optional.includes(read))) findings.push(finding("SG-SCOPE-003", "medium", "high", read, import_node_path2.default.relative(absoluteRoot, configFile).replaceAll(import_node_path2.default.sep, "/"), null, `${write} already grants read access to this resource; the separate ${read} declaration is redundant.`, `${write} implies ${read}`, EVIDENCE_SOURCES.scopes, `Remove ${read} from the declarations unless you intentionally replace ${write}.`));
+  for (const scope of config.required) if (!observedScopes.has(scope) && ![...observedScopes].some((s) => IMPLIED_SCOPES.get(s) === scope) && ![...IMPLIED_SCOPES.entries()].some(([write, read]) => write === scope && observedScopes.has(read))) findings.push(finding("SG-SCOPE-004", "low", "high", scope, import_node_path2.default.relative(absoluteRoot, configFile).replaceAll(import_node_path2.default.sep, "/"), null, `No supported usage requiring ${scope} was evidenced.`, "No matching supported operation found", EVIDENCE_SOURCES.scopes, `Review whether ${scope} is still needed; static analysis cannot prove it is unused.`));
+  for (const scope of config.optional) if (!observedScopes.has(scope)) findings.push(finding("SG-SCOPE-004", "low", "high", scope, import_node_path2.default.relative(absoluteRoot, configFile).replaceAll(import_node_path2.default.sep, "/"), null, `No supported usage requiring optional scope ${scope} was evidenced.`, "No matching supported operation found", EVIDENCE_SOURCES.scopes, `Review the optional feature path; this result does not prove the scope is unused.`));
   if (unknown.length) findings.push(finding("SG-SCOPE-006", "info", "low", null, unknown[0].file, unknown[0].line, "Shopify-related code was found but could not be safely mapped to supported static evidence.", unknown.map((item) => item.reason).join("; "), EVIDENCE_SOURCES.scopes, "Review the unmapped code manually."));
   findings.sort((a, b) => `${a.severity}:${a.ruleId}:${a.file}:${a.line}`.localeCompare(`${b.severity}:${b.ruleId}:${b.file}:${b.line}`));
-  return { tool: { name: "shopify-scope-guard", version: "0.1.0" }, evidence: { api: "admin-graphql", version: EVIDENCE_VERSION, source: EVIDENCE_SOURCES.versioning }, summary: { declaredRequired: config.required.length, declaredOptional: config.optional.length, evidenced: observedScopes.size, unknown: unknown.length, findingCount: findings.length }, scopes: { required: config.required, optional: config.optional }, observations: observations.map((o) => ({ operation: o.operation, scope: o.requires.anyOf, file: import_node_path.default.relative(absoluteRoot, o.file).replaceAll(import_node_path.default.sep, "/"), line: o.line })), findings, unknown };
+  return { tool: { name: "shopify-scope-guard", version: TOOL_VERSION }, evidence: { api: "admin-graphql", version: EVIDENCE_VERSION, source: EVIDENCE_SOURCES.versioning }, summary: { declaredRequired: config.required.length, declaredOptional: config.optional.length, evidenced: observedScopes.size, unknown: unknown.length, findingCount: findings.length }, scopes: { required: config.required, optional: config.optional }, observations: observations.map((o) => ({ operation: o.operation, scope: o.requires.anyOf, file: import_node_path2.default.relative(absoluteRoot, o.file).replaceAll(import_node_path2.default.sep, "/"), line: o.line })), findings, unknown, skipped };
 }
 
 // src/output/index.js
 var rank = { info: 0, low: 1, medium: 2, high: 3 };
-function toJson(report2) {
-  return JSON.stringify(report2, null, 2) + "\n";
+function toJson(report) {
+  return JSON.stringify(report, null, 2) + "\n";
 }
-function toHuman(report2) {
-  const lines = ["Shopify Scope Guard", "", "Scope audit", "\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500", `Declared: required ${report2.summary.declaredRequired}, optional ${report2.summary.declaredOptional}`, `Observed: evidenced ${report2.summary.evidenced}, unknown ${report2.summary.unknown}`, `Findings: ${report2.summary.findingCount}`, ""];
-  for (const f of [...report2.findings].sort((a, b) => rank[b.severity] - rank[a.severity])) {
+function toHuman(report, { showUnmapped = false } = {}) {
+  const lines = ["Shopify Scope Guard", "", "Scope audit", "\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500", `Declared: required ${report.summary.declaredRequired}, optional ${report.summary.declaredOptional}`, `Observed: evidenced ${report.summary.evidenced}, unknown ${report.summary.unknown}`, `Findings: ${report.summary.findingCount}`, ""];
+  for (const f of [...report.findings].sort((a, b) => rank[b.severity] - rank[a.severity])) {
     lines.push(`${f.severity.toUpperCase()} ${f.ruleId}${f.scope ? ` \u2014 ${f.scope}` : ""}`, `  ${f.explanation}`, `  Evidence: ${f.evidence}`, `  Source: ${f.source}`, `  Location: ${f.file ?? "repository"}${f.line ? `:${f.line}` : ""}`, `  Recommendation: ${f.remediation}`, "");
   }
+  if (showUnmapped) for (const item of report.unknown) lines.push(`UNKNOWN ${item.file}${item.line ? ":" + item.line : ""}: ${item.reason}`);
+  if (report.skipped?.length) lines.push(`Skipped analysis: ${report.skipped.length} file(s); inspect JSON and review manually.`);
   return lines.join("\n");
 }
-function toSarif(report2) {
-  return JSON.stringify({ version: "2.1.0", $schema: "https://json.schemastore.org/sarif-2.1.0.json", runs: [{ tool: { driver: { name: report2.tool.name, version: report2.tool.version, informationUri: "https://github.com/efegokdemir/shopify-scope-guard", rules: [...new Map(report2.findings.map((f) => [f.ruleId, { id: f.ruleId, shortDescription: { text: f.explanation }, helpUri: f.source }])).values()] } }, results: report2.findings.map((f) => ({ ruleId: f.ruleId, level: f.severity === "high" ? "error" : f.severity === "medium" ? "warning" : "note", message: { text: f.explanation }, locations: f.file ? [{ physicalLocation: { artifactLocation: { uri: f.file }, region: f.line ? { startLine: f.line } : void 0 } }] : void 0 })) }] }, null, 2) + "\n";
+function toSarif(report) {
+  return JSON.stringify({ version: "2.1.0", $schema: "https://json.schemastore.org/sarif-2.1.0.json", runs: [{ tool: { driver: { name: report.tool.name, version: report.tool.version, informationUri: "https://github.com/efegokdemir/shopify-scope-guard", rules: [...new Map(report.findings.map((f) => [f.ruleId, { id: f.ruleId, shortDescription: { text: f.explanation }, helpUri: f.source }])).values()] } }, results: report.findings.map((f) => ({ ruleId: f.ruleId, level: f.severity === "high" ? "error" : f.severity === "medium" ? "warning" : "note", message: { text: f.explanation }, locations: f.file ? [{ physicalLocation: { artifactLocation: { uri: f.file.split("/").map(encodeURIComponent).join("/") }, region: f.line ? { startLine: f.line } : void 0 } }] : void 0 })) }] }, null, 2) + "\n";
+}
+
+// src/policy.js
+var rank2 = { info: 0, low: 1, medium: 2, high: 3 };
+function validateOptions({ format = "human", failOn = "none" } = {}) {
+  if (!["human", "json", "sarif"].includes(format)) throw new Error("format must be human, json, or sarif");
+  if (!["none", "low", "medium", "high"].includes(failOn)) throw new Error("fail-on must be none, low, medium, or high");
+}
+function shouldFail(report, threshold = "none") {
+  validateOptions({ failOn: threshold });
+  return threshold !== "none" && report.findings.some((f) => rank2[f.severity] >= rank2[threshold]);
 }
 
 // src/action/index.js
-var input = (name) => import_node_process.default.env[`INPUT_${name.toUpperCase().replaceAll("-", "_")}`] || "";
-var report = audit({ root: input("path") || ".", configPath: input("config") || void 0 });
-var format = input("format") || "human";
-var rendered = format === "json" ? toJson(report) : format === "sarif" ? toSarif(report) : toHuman(report);
-console.log(rendered);
-if (format === "sarif") import_node_fs3.default.writeFileSync("scope-guard.sarif", rendered);
-var counts = (severity) => report.findings.filter((f) => f.severity === severity).length;
-var missing = report.findings.filter((f) => f.ruleId === "SG-SCOPE-001" || f.ruleId === "SG-SCOPE-002").length;
-var redundant = report.findings.filter((f) => f.ruleId === "SG-SCOPE-003").length;
-var values = { outcome: counts("high") ? "failed" : "passed", "finding-count": report.findings.length, "high-count": counts("high"), "medium-count": counts("medium"), "low-count": counts("low"), "unknown-count": report.summary.unknown, "missing-scope-count": missing, "redundant-scope-count": redundant, report: format === "sarif" ? "scope-guard.sarif" : "" };
-if (import_node_process.default.env.GITHUB_OUTPUT) import_node_fs3.default.appendFileSync(import_node_process.default.env.GITHUB_OUTPUT, Object.entries(values).map(([key, value]) => `${key}=${value}`).join("\n") + "\n");
-var threshold = input("fail-on") || "high";
-var order = { none: 0, low: 1, medium: 2, high: 3 };
-if (order[threshold] > 0 && report.findings.some((f) => order[f.severity] >= order[threshold])) import_node_process.default.exit(1);
+var input = (name) => process.env[`INPUT_${name.toUpperCase().replaceAll("-", "_")}`] || "";
+try {
+  const format = input("format") || "human", threshold = input("fail-on") || "high";
+  validateOptions({ format, failOn: threshold });
+  if (input("show-unmapped") && !["true", "false"].includes(input("show-unmapped"))) throw new Error("show-unmapped must be true or false");
+  const report = audit({ root: input("path") || ".", configPath: input("config") || void 0 });
+  const rendered = format === "json" ? toJson(report) : format === "sarif" ? toSarif(report) : toHuman(report, { showUnmapped: input("show-unmapped") === "true" });
+  const stop = (0, import_node_crypto.randomUUID)();
+  console.log(`::stop-commands::${stop}
+${rendered}
+::${stop}::`);
+  const directory = process.env.RUNNER_TEMP || process.cwd();
+  const reportPath = import_node_path3.default.join(directory, `scope-guard-${(0, import_node_crypto.randomUUID)()}.json`);
+  import_node_fs3.default.writeFileSync(reportPath, toJson(report));
+  if (format === "sarif") import_node_fs3.default.writeFileSync(import_node_path3.default.join(directory, "scope-guard.sarif"), rendered);
+  const counts = (severity) => report.findings.filter((f) => f.severity === severity).length;
+  const failed = shouldFail(report, threshold);
+  const values = { outcome: failed ? "failed" : "passed", "finding-count": report.findings.length, "high-count": counts("high"), "medium-count": counts("medium"), "low-count": counts("low"), "unknown-count": report.summary.unknown, "missing-scope-count": report.findings.filter((f) => ["SG-SCOPE-001", "SG-SCOPE-002"].includes(f.ruleId)).length, "redundant-scope-count": report.findings.filter((f) => f.ruleId === "SG-SCOPE-003").length, report: reportPath };
+  if (process.env.GITHUB_OUTPUT) for (const [key, value] of Object.entries(values)) {
+    const delimiter = (0, import_node_crypto.randomUUID)();
+    import_node_fs3.default.appendFileSync(process.env.GITHUB_OUTPUT, `${key}<<${delimiter}
+${value}
+${delimiter}
+`);
+  }
+  process.exitCode = failed ? 1 : 0;
+} catch (error) {
+  console.error(`Scope Guard scanner error: ${String(error.message).replace(/[\r\n]/g, " ")}`);
+  process.exitCode = 2;
+}

@@ -29,6 +29,22 @@ test('2026-10 evidence maps analytics, reports, and rollouts', () => {
 });
 test('json output is stable and parseable', () => { const json = toJson(audit({ root: fixture('02-missing-scope') })); assert.equal(JSON.parse(json).tool.name, 'shopify-scope-guard'); });
 test('sarif output is 2.1.0', () => assert.equal(JSON.parse(toSarif(audit({ root: fixture('02-missing-scope') }))).version, '2.1.0'));
-for (const [name, expected] of [['products','read_products'],['product','read_products'],['productVariants','read_products'],['orders','read_orders'],['order','read_orders'],['customers','read_customers'],['customer','read_customers'],['inventoryLevels','read_inventory'],['locations','read_locations'],['themes','read_themes'],['files','read_files']]) {
-  test(`registry smoke: ${name}`, () => { const r = audit({ root: fixture('01-minimal-pass') }); assert.ok(expected.startsWith('read_')); assert.ok(name.length > 0); assert.ok(r.tool.version); });
+import fs from 'node:fs';
+import os from 'node:os';
+import { EVIDENCE_REGISTRY } from '../src/evidence/registry.js';
+for (const rule of EVIDENCE_REGISTRY) {
+  test(`registry mapping: ${rule.operation}`, t => {
+    const root = fs.mkdtempSync(path.join(os.tmpdir(), 'scope-registry-'));
+    t.after(() => fs.rmSync(root, {recursive:true,force:true}));
+    fs.writeFileSync(path.join(root, 'shopify.app.toml'), '[access_scopes]\nscopes=""');
+    const parts=rule.operation.split('.');
+    let selection = parts.pop() + '{ id }';
+    for(const part of parts.reverse()) selection = `${part} { ${selection} }`;
+    fs.writeFileSync(path.join(root,'operation.graphql'),`${rule.operationType} { ${selection} }`);
+    const report=audit({root});
+    assert.ok(report.observations.some(o=>o.operation===rule.operation));
+    assert.ok(report.findings.some(f=>f.scope===rule.requires.anyOf[0]&&f.ruleId==='SG-SCOPE-001'));
+    fs.writeFileSync(path.join(root,'shopify.app.toml'),`[access_scopes]\nscopes="${rule.requires.anyOf[0]}"`);
+    assert.ok(!audit({root}).findings.some(f=>f.ruleId==='SG-SCOPE-001'));
+  });
 }

@@ -2,43 +2,39 @@ name: Release
 on:
   push:
     tags: ['v*.*.*']
-  workflow_dispatch:
-    inputs:
-      release_tag:
-        description: Existing immutable release tag to publish
-        required: true
-        default: v0.2.0
 permissions:
-  contents: write
-  id-token: write
+  contents: read
 jobs:
   release:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      id-token: write
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
-          ref: ${{ inputs.release_tag || github.ref }}
+          fetch-depth: 0
+          persist-credentials: false
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
         with:
           node-version: 24
           registry-url: https://registry.npmjs.org
-          cache: npm
-      - run: npm ci
-      - run: npm test
-      - run: npm run lint
-      - run: npm run build
-      - run: npm pack --dry-run
-      - name: Publish if version is not already registered
+          package-manager-cache: false
+      - run: npm install --global npm@11.15.0
+      - name: Verify immutable tag matches package version
         shell: bash
-        run: |
-          package_version=$(node -p "require('./package.json').version")
-          if npm view "shopify-scope-guard@${package_version}" version >/dev/null 2>&1; then
-            echo "shopify-scope-guard@${package_version} is already published; continuing with registry verification."
-          else
-            npm publish --provenance --access public
-          fi
-      - run: npm view shopify-scope-guard version dist.integrity
-      - uses: softprops/action-gh-release@4d8ab33c14495378882c8fef6babbed32e187639
-        with:
-          tag_name: ${{ inputs.release_tag || github.ref_name }}
-          generate_release_notes: true
+        run: test "${GITHUB_REF_NAME#v}" = "$(node -p "require('./package.json').version")"
+      - run: npm ci --ignore-scripts
+      - run: npm run build
+      - run: npm test
+      - run: npm run coverage
+      - run: npm run lint
+      - run: npm audit --audit-level=high
+      - run: npm run package:smoke
+      - run: npm run action:check
+      - run: git diff --exit-code -- dist package.json package-lock.json
+      - run: npm publish --provenance --access public
+      - name: Create new GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release create "$GITHUB_REF_NAME" --verify-tag --title "$GITHUB_REF_NAME" --generate-notes

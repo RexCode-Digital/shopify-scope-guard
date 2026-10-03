@@ -1,6 +1,6 @@
 {
   "name": "shopify-scope-guard",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Catch missing, redundant, and unproven Shopify access scopes with offline static analysis.",
   "type": "module",
   "bin": {
@@ -12,16 +12,19 @@
     "README.md",
     "LICENSE",
     "CHANGELOG.md",
-    "SECURITY.md"
+    "SECURITY.md",
+    "dist"
   ],
   "scripts": {
     "test": "node --test",
-    "coverage": "node --test --experimental-test-coverage",
-    "lint": "node --check src/cli/index.js && node --check src/analyzer/index.js",
+    "coverage": "c8 --include 'src/**' --reporter=text --reporter=json-summary node --test",
+    "lint": "node scripts/check-source.mjs",
     "typecheck": "node --check src/analyzer/index.js",
     "build": "node scripts/build-action.mjs",
     "audit:fixture": "node src/cli/index.js audit examples/02-missing-scope --format human --fail-on none",
-    "package:smoke": "npm pack --dry-run"
+    "package:smoke": "node scripts/package-smoke.mjs",
+    "action:check": "node scripts/check-action.mjs",
+    "prebuild": "node scripts/write-version.mjs"
   },
   "engines": {
     "node": ">=20"
@@ -49,6 +52,13 @@
     "security"
   ],
   "devDependencies": {
+    "c8": "12.0.0",
     "esbuild": "^0.28.2"
+  },
+  "bugs": {
+    "url": "https://github.com/efegokdemir/shopify-scope-guard/issues"
+  },
+  "publishConfig": {
+    "provenance": true
   }
 }

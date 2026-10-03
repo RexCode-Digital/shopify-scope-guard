@@ -15,6 +15,8 @@ Shopify Scope Guard is an offline, deterministic, read-only static analyzer for 
 
 > Unofficial open-source developer tooling. Not affiliated with, endorsed by, or certified by Shopify.
 
+Part of the **RexCode Shopify developer tools** suite. Requires Node.js 20 or later for the CLI. [Releases](https://github.com/efegokdemir/shopify-scope-guard/releases) · [npm](https://www.npmjs.com/package/shopify-scope-guard) · [Marketplace](https://github.com/marketplace/actions/shopify-scope-guard)
+
 ## Quick start
 
 Run a scan without installing anything globally:
@@ -73,12 +75,12 @@ jobs:
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
 
-      - uses: efegokdemir/shopify-scope-guard@77b615859593999e7e88aa9ff27a2e572d0fbe08 # v0.1.0
+      - uses: efegokdemir/shopify-scope-guard@v0.2.1 # current patch release; resolve to a SHA below
         with:
           fail-on: high
 ```
 
-For high-assurance workflows, pin third-party Actions to reviewed immutable commit SHAs. Scope Guard also publishes the movable compatible minor alias `v0.2`; `v0.2.0` is the immutable patch release reference.
+For high-assurance workflows, pin third-party Actions to reviewed immutable commit SHAs. Scope Guard also publishes the movable compatible minor alias `v0.2`; `v0.2.1` identifies the current patch release; use a resolved SHA for immutable execution.
 
 See the [GitHub Action guide](docs/github-action.md).
 
@@ -90,11 +92,13 @@ See the [GitHub Action guide](docs/github-action.md).
 | `config` | Shopify app TOML path | auto-discovered |
 | `fail-on` | Minimum finding severity that fails the job | `high` |
 | `format` | Output format: `human`, `json`, or `sarif` | `human` |
-| `show-unmapped` | Include unsupported Shopify patterns | `false` |
+| `show-unmapped` | Show detailed unmapped patterns in human output | `false` |
 
 ### Action outputs
 
 `outcome`, `finding-count`, `high-count`, `medium-count`, `low-count`, `unknown-count`, `missing-scope-count`, `redundant-scope-count`, and `report`.
+
+The `report` output is a JSON report file in the runner temporary directory. SARIF format also writes `scope-guard.sarif` there. `outcome` reflects the selected `fail-on` policy.
 
 The Action is bundled and runs on GitHub's `node20` JavaScript Action runtime. Consumer jobs do not install Scope Guard dependencies separately.
 
@@ -169,7 +173,13 @@ Scope Guard reads Shopify app TOML configuration from the repository. It support
 The CLI supports:
 
 - `--path` to select the repository root
-- `--config` to select an explicit Shopify app TOML path
+- `--config` to select a Shopify app TOML path relative to the scan root
+
+Auto-discovery prefers `shopify.app.toml`, otherwise a single named root configuration. Missing or ambiguous configurations fail explicitly. For nested apps use `audit --path apps/my-app --config shopify.app.production.toml`. Scans are bounded to 2,000 code files and 1 MiB per file; symlinks and bounded-out files appear in `skipped` and require manual review.
+
+Local fragments, inline fragments, and aliases are supported. Explicit Storefront signals stay outside Admin scope evidence. A standalone GraphQL document without a surface signal is assumed to be Admin; do not point an Admin audit at an unlabelled Storefront document set.
+
+GraphQL 16 is retained for Node 20 support. Dependabot PR #3 remains open: GraphQL 17.0.2 officially requires Node 22/24/25/26 and is incompatible with Node 20. The minimum Node version will not be raised to satisfy that update.
 
 ## Security and privacy
 
@@ -229,10 +239,20 @@ Start with [CONTRIBUTING.md](CONTRIBUTING.md) or browse the [open issues](https:
 
 ## Roadmap
 
-Current priorities include additional verified Shopify scope coverage, additional Admin API surfaces without mixing evidence confidence levels, better alternative-scope modeling, API-version-aware evidence, false-positive reduction, improved UNKNOWN handling, and privacy-safe consumer/action fixtures.
+Current priorities include additional verified Shopify scope coverage, additional Admin API surfaces without mixing evidence confidence levels, better alternative-scope modeling, explicit API-version-aware evidence beyond the bundled snapshot, false-positive reduction, improved UNKNOWN handling, and privacy-safe consumer/action fixtures.
 
 See [ROADMAP.md](ROADMAP.md).
 
 ## License
 
 MIT — see [LICENSE](LICENSE).
+
+## Immutable SHA usage
+
+Resolve the release commit, review it, and replace `@v0.2.1` in the Action example with that full SHA:
+
+```bash
+gh api repos/efegokdemir/shopify-scope-guard/git/ref/tags/v0.2.1 --jq .object.sha
+```
+
+Published patch tags are retained; existing minor aliases are movable. A reviewed full commit SHA is the immutable execution reference.
