@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.2.1
+
+- Correct access-scope evidence against official 2026-10 documentation, including write-only analytics mutations and read alternatives.
+- Resolve local GraphQL fragments and aliases while preserving unknown evidence for unsupported patterns.
+- Reject file symlinks, invalid or ambiguous configurations, and malformed options; bound scanned files.
+- Make Action outcomes match failure policy and return actual JSON/SARIF report files.
+- Replace registry self-comparison tests with real operation fixtures and validate packaged Action contents.
+- Retain GraphQL 16 and Node >=20; GraphQL 17 requires newer Node engines.
+
 ## 0.2.0
 
 - Updated the evidence pack to Shopify API `2026-10`, now the latest stable version.

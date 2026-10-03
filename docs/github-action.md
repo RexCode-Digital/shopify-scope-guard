@@ -1,13 +1,15 @@
 # GitHub Action
 
-The bundled Node 20 action runs on the GitHub-hosted runner with `contents: read`. It does not request Shopify credentials, call Shopify, upload source, or execute repository scripts.
+The bundled Node 20 Action needs `contents: read`. It does not request Shopify credentials, call Shopify, upload source, or execute repository scripts.
 
-Use the immutable release commit for high-assurance workflows:
+Use the current patch release and resolve its commit when pinning a workflow:
 
-```yaml
-- uses: efegokdemir/shopify-scope-guard@77b615859593999e7e88aa9ff27a2e572d0fbe08 # v0.1.0
+```sh
+gh api repos/efegokdemir/shopify-scope-guard/git/ref/tags/v0.2.1 --jq .object.sha
 ```
 
-The `v0.2.0` tag is the immutable patch release. `v0.2` is a mutable compatible minor alias.
+```yaml
+- uses: efegokdemir/shopify-scope-guard@v0.2.1 # replace with the resolved SHA
+```
 
-Inputs are `path`, `config`, `fail-on`, `format`, and `show-unmapped`. Outputs include the scan outcome, total/high/medium/low/unknown counts, missing-scope count, redundant-scope count, and the SARIF report path when `format: sarif` is selected. See the [action metadata](../action.yml) and the README tables for the exact defaults.
+Inputs are `path`, `config`, `fail-on`, `format`, and `show-unmapped`. `config` is relative to the project root. The `report` output is a runner-temporary JSON report, or a SARIF report with `format: sarif`. `outcome` follows the selected failure policy. Other outputs include total/high/medium/low/unknown counts, missing-scope count, and redundant-scope count. See [action metadata](../action.yml) for defaults.
