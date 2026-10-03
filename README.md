@@ -75,7 +75,7 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
-      - uses: efegokdemir/shopify-scope-guard@v0.2.1 # current patch release; resolve to a SHA below
+      - uses: efegokdemir/shopify-scope-guard@4c9077c1b150f54ee488b8996aa7afeee740bae4 # v0.2.1
         with:
           fail-on: high
 ```
@@ -249,7 +249,7 @@ MIT — see [LICENSE](LICENSE).
 
 ## Immutable SHA usage
 
-Resolve the release commit, review it, and replace `@v0.2.1` in the Action example with that full SHA:
+The Action example pins the reviewed v0.2.1 release commit. Verify the release reference with:
 
 ```bash
 gh api repos/efegokdemir/shopify-scope-guard/git/ref/tags/v0.2.1 --jq .object.sha
