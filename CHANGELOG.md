@@ -2,6 +2,8 @@
 
 ## 0.2.1
 
+- Declare Node 24 for the GitHub Action, matching current runner support; CLI engines remain Node >=20.
+
 - Correct access-scope evidence against official 2026-10 documentation, including write-only analytics mutations and read alternatives.
 - Resolve local GraphQL fragments and aliases while preserving unknown evidence for unsupported patterns.
 - Reject file symlinks, invalid or ambiguous configurations, and malformed options; bound scanned files.
