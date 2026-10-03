@@ -1,6 +1,6 @@
 # GitHub Action
 
-The bundled Node 20 Action needs `contents: read`. It does not request Shopify credentials, call Shopify, upload source, or execute repository scripts.
+The bundled Node 24 Action needs `contents: read`. It does not request Shopify credentials, call Shopify, upload source, or execute repository scripts.
 
 Use the current patch release and resolve its commit when pinning a workflow:
 
