@@ -2,6 +2,10 @@
 
 Contributions are welcome around evidence-backed scope mappings, official Shopify documentation references, false-positive reduction, parser improvements, scanner hardening, and privacy-safe fixtures.
 
+## Contribution terms
+
+You retain copyright in your contributions. By submitting a contribution, you agree that it is provided under the same MIT licence that applies to this project. You confirm that you have the right to submit the contribution. Disclose any third-party code or assets and identify their applicable licences before including them.
+
 ## Development setup
 
 Use Node.js 20 or newer, then install the locked dependencies:
