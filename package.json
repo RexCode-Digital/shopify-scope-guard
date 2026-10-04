@@ -1,6 +1,6 @@
 {
   "name": "shopify-scope-guard",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "description": "Catch missing, redundant, and unproven Shopify access scopes with offline static analysis.",
   "type": "module",
   "bin": {

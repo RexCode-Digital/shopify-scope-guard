@@ -82,7 +82,7 @@ jobs:
           fail-on: high
 ```
 
-For high-assurance workflows, pin third-party Actions to reviewed immutable commit SHAs. Scope Guard also publishes the movable compatible minor alias `v0.2`; `v0.2.1` identifies the current patch release; use a resolved SHA for immutable execution.
+For high-assurance workflows, pin third-party Actions to reviewed immutable commit SHAs. `v0.2.1` identifies the current patch release; use a resolved SHA for immutable execution.
 
 See the [GitHub Action guide](docs/github-action.md).
 
