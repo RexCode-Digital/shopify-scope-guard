@@ -35,9 +35,9 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/efegokdemir/shopify-scope-guard.git"
+    "url": "https://github.com/RexCode-Digital/shopify-scope-guard.git"
   },
-  "homepage": "https://github.com/efegokdemir/shopify-scope-guard",
+  "homepage": "https://github.com/RexCode-Digital/shopify-scope-guard#readme",
   "license": "MIT",
   "keywords": [
     "shopify",
@@ -56,7 +56,7 @@
     "esbuild": "^0.28.2"
   },
   "bugs": {
-    "url": "https://github.com/efegokdemir/shopify-scope-guard/issues"
+    "url": "https://github.com/RexCode-Digital/shopify-scope-guard/issues"
   },
   "publishConfig": {
     "provenance": true

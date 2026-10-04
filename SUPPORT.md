@@ -1,6 +1,6 @@
 # Support
 
-Open a [GitHub issue](https://github.com/efegokdemir/shopify-scope-guard/issues) for reproducible bugs, documentation problems, and feature requests. Include:
+Open a [GitHub issue](https://github.com/RexCode-Digital/shopify-scope-guard/issues) for reproducible bugs, documentation problems, and feature requests. Include:
 
 - Scope Guard version and command
 - operating system and Node.js version
