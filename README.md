@@ -4,10 +4,10 @@
 
 [![npm](https://img.shields.io/npm/v/shopify-scope-guard?logo=npm)](https://www.npmjs.com/package/shopify-scope-guard)
 [![npm downloads](https://img.shields.io/npm/dm/shopify-scope-guard?logo=npm)](https://www.npmjs.com/package/shopify-scope-guard)
-[![CI](https://github.com/efegokdemir/shopify-scope-guard/actions/workflows/ci.yml/badge.svg)](https://github.com/efegokdemir/shopify-scope-guard/actions/workflows/ci.yml)
-[![CodeQL](https://github.com/efegokdemir/shopify-scope-guard/actions/workflows/codeql.yml/badge.svg)](https://github.com/efegokdemir/shopify-scope-guard/actions/workflows/codeql.yml)
-[![OpenSSF Scorecard](https://api.securityscorecards.dev/projects/github.com/efegokdemir/shopify-scope-guard/badge)](https://securityscorecards.dev/viewer/?uri=github.com/efegokdemir/shopify-scope-guard)
-[![license](https://img.shields.io/github/license/efegokdemir/shopify-scope-guard)](LICENSE)
+[![CI](https://github.com/RexCode-Digital/shopify-scope-guard/actions/workflows/ci.yml/badge.svg)](https://github.com/RexCode-Digital/shopify-scope-guard/actions/workflows/ci.yml)
+[![CodeQL](https://github.com/RexCode-Digital/shopify-scope-guard/actions/workflows/codeql.yml/badge.svg)](https://github.com/RexCode-Digital/shopify-scope-guard/actions/workflows/codeql.yml)
+[![OpenSSF Scorecard](https://api.securityscorecards.dev/projects/github.com/RexCode-Digital/shopify-scope-guard/badge)](https://securityscorecards.dev/viewer/?uri=github.com/RexCode-Digital/shopify-scope-guard)
+[![license](https://img.shields.io/github/license/RexCode-Digital/shopify-scope-guard)](LICENSE)
 
 Shopify Scope Guard is an offline, deterministic, read-only static analyzer for Shopify app repositories. It compares declared access scopes with supported static evidence from repository code and configuration, then reports missing, redundant, unproven, and unknown scope usage for review.
 
@@ -15,7 +15,9 @@ Shopify Scope Guard is an offline, deterministic, read-only static analyzer for 
 
 > Unofficial open-source developer tooling. Not affiliated with, endorsed by, or certified by Shopify.
 
-Part of the **RexCode Shopify developer tools** suite. Requires Node.js 20 or later for the CLI. [Releases](https://github.com/efegokdemir/shopify-scope-guard/releases) · [npm](https://www.npmjs.com/package/shopify-scope-guard) · [Marketplace](https://github.com/marketplace/actions/shopify-scope-guard)
+Maintained by RexCode Digital Ltd.
+
+Part of the **RexCode Shopify developer tools** suite. Requires Node.js 20 or later for the CLI. [Releases](https://github.com/RexCode-Digital/shopify-scope-guard/releases) · [npm](https://www.npmjs.com/package/shopify-scope-guard) · [Marketplace](https://github.com/marketplace/actions/shopify-scope-guard)
 
 ## Quick start
 
@@ -75,7 +77,7 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
-      - uses: efegokdemir/shopify-scope-guard@4c9077c1b150f54ee488b8996aa7afeee740bae4 # v0.2.1
+      - uses: RexCode-Digital/shopify-scope-guard@4c9077c1b150f54ee488b8996aa7afeee740bae4 # v0.2.1
         with:
           fail-on: high
 ```
@@ -216,9 +218,9 @@ See [Limitations](docs/limitations.md).
 
 Building or maintaining Shopify apps?
 
-- **[ChangeGuard](https://github.com/efegokdemir/shopify-app-changeguard)** — Review meaningful Shopify app configuration changes before they reach production.
-- **[Shopify Upgrade Guard](https://github.com/efegokdemir/shopify-upgrade-guard)** — Catch documented Shopify API and platform upgrade risks before production migrations.
-- **[Shopify App Review Guard](https://github.com/efegokdemir/shopify-app-review-guard)** — Run deterministic preflight checks for Shopify App Store and production readiness.
+- **[ChangeGuard](https://github.com/RexCode-Digital/shopify-app-changeguard)** — Review meaningful Shopify app configuration changes before they reach production.
+- **[Shopify Upgrade Guard](https://github.com/RexCode-Digital/shopify-upgrade-guard)** — Catch documented Shopify API and platform upgrade risks before production migrations.
+- **[Shopify App Review Guard](https://github.com/RexCode-Digital/shopify-app-review-guard)** — Run deterministic preflight checks for Shopify App Store and production readiness.
 
 These are independent open-source tools and are not affiliated with Shopify.
 
@@ -235,7 +237,7 @@ A Shopify-specific rule should include:
 5. a false-positive or unchanged case where appropriate
 6. honest evidence confidence
 
-Start with [CONTRIBUTING.md](CONTRIBUTING.md) or browse the [open issues](https://github.com/efegokdemir/shopify-scope-guard/issues).
+Start with [CONTRIBUTING.md](CONTRIBUTING.md) or browse the [open issues](https://github.com/RexCode-Digital/shopify-scope-guard/issues).
 
 ## Roadmap
 
@@ -252,7 +254,7 @@ MIT — see [LICENSE](LICENSE).
 The Action example pins the reviewed v0.2.1 release commit. Verify the release reference with:
 
 ```bash
-gh api repos/efegokdemir/shopify-scope-guard/git/ref/tags/v0.2.1 --jq .object.sha
+gh api repos/RexCode-Digital/shopify-scope-guard/git/ref/tags/v0.2.1 --jq .object.sha
 ```
 
 Published patch tags are retained; existing minor aliases are movable. A reviewed full commit SHA is the immutable execution reference.

@@ -22512,7 +22512,7 @@ function toHuman(report, { showUnmapped = false } = {}) {
   return lines.join("\n");
 }
 function toSarif(report) {
-  return JSON.stringify({ version: "2.1.0", $schema: "https://json.schemastore.org/sarif-2.1.0.json", runs: [{ tool: { driver: { name: report.tool.name, version: report.tool.version, informationUri: "https://github.com/efegokdemir/shopify-scope-guard", rules: [...new Map(report.findings.map((f) => [f.ruleId, { id: f.ruleId, shortDescription: { text: f.explanation }, helpUri: f.source }])).values()] } }, results: report.findings.map((f) => ({ ruleId: f.ruleId, level: f.severity === "high" ? "error" : f.severity === "medium" ? "warning" : "note", message: { text: f.explanation }, locations: f.file ? [{ physicalLocation: { artifactLocation: { uri: f.file.split("/").map(encodeURIComponent).join("/") }, region: f.line ? { startLine: f.line } : void 0 } }] : void 0 })) }] }, null, 2) + "\n";
+  return JSON.stringify({ version: "2.1.0", $schema: "https://json.schemastore.org/sarif-2.1.0.json", runs: [{ tool: { driver: { name: report.tool.name, version: report.tool.version, informationUri: "https://github.com/RexCode-Digital/shopify-scope-guard", rules: [...new Map(report.findings.map((f) => [f.ruleId, { id: f.ruleId, shortDescription: { text: f.explanation }, helpUri: f.source }])).values()] } }, results: report.findings.map((f) => ({ ruleId: f.ruleId, level: f.severity === "high" ? "error" : f.severity === "medium" ? "warning" : "note", message: { text: f.explanation }, locations: f.file ? [{ physicalLocation: { artifactLocation: { uri: f.file.split("/").map(encodeURIComponent).join("/") }, region: f.line ? { startLine: f.line } : void 0 } }] : void 0 })) }] }, null, 2) + "\n";
 }
 
 // src/policy.js

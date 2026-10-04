@@ -24,4 +24,4 @@ Before opening a pull request, also run `npm run coverage`, `npm audit --omit=de
 - Keep UNKNOWN distinct from NOT EVIDENCED; static analysis must not claim that a scope is unused.
 - Use privacy-safe fixtures with no credentials, tokens, or merchant data.
 
-See the [open issues](https://github.com/efegokdemir/shopify-scope-guard/issues) for current opportunities.
+See the [open issues](https://github.com/RexCode-Digital/shopify-scope-guard/issues) for current opportunities.

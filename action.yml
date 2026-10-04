@@ -1,6 +1,6 @@
 name: Shopify Scope Guard
 description: Audit Shopify access scopes against offline code evidence.
-author: efegokdemir
+author: RexCode Digital Ltd (Efe Gökdemir)
 branding:
   icon: shield
   color: green
