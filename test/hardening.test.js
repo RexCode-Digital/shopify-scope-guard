@@ -21,7 +21,7 @@ test('unsupported roots and explicit Storefront documents do not become Admin ev
  fs.writeFileSync(path.join(root,'app.graphql'),'query {notMapped{id}}');assert.equal(audit({root}).unknown.length,1);
 });
 test('relative configuration is resolved inside root and ambiguity is rejected',t=>{
- const root=fixture(t);fs.renameSync(path.join(root,'shopify.app.toml'),path.join(root,'shopify.app.dev.toml'));fs.writeFileSync(path.join(root,'shopify.app.prod.toml'),'[access_scopes]\nscopes=""');assert.throws(()=>audit({root}),/Multiple/);assert.equal(audit({root,configPath:'shopify.app.dev.toml'}).tool.version,'0.2.2');assert.throws(()=>audit({root,configPath:'../external.toml'}),/inside/);
+ const root=fixture(t);fs.renameSync(path.join(root,'shopify.app.toml'),path.join(root,'shopify.app.dev.toml'));fs.writeFileSync(path.join(root,'shopify.app.prod.toml'),'[access_scopes]\nscopes=""');assert.throws(()=>audit({root}),/Multiple/);assert.equal(audit({root,configPath:'shopify.app.dev.toml'}).tool.version,'0.2.3');assert.throws(()=>audit({root,configPath:'../external.toml'}),/inside/);
 });
 test('symlinks and oversized files are skipped; malformed config is redacted',t=>{
  const root=fixture(t),outside=fixture(t);fs.writeFileSync(path.join(outside,'query.graphql'),'mutation { productCreate(product:{title:"x"}){product{id}}}');
@@ -35,7 +35,7 @@ test('CLI policies reject typo and missing values',t=>{
 test('Action outcome agrees with none and medium policies and returns JSON file',t=>{
  const root=fixture(t,'read_products,write_products'),out=path.join(root,'outputs');fs.writeFileSync(out,'');
  const run=threshold=>spawnSync(process.execPath,[action],{encoding:'utf8',env:{...process.env,INPUT_PATH:root,INPUT_FAIL_ON:threshold,GITHUB_OUTPUT:out,RUNNER_TEMP:root}});
- assert.equal(run('none').status,0);assert.equal(run('medium').status,1);const text=fs.readFileSync(out,'utf8');assert.match(text,/outcome<<[^\n]+\npassed/);assert.match(text,/outcome<<[^\n]+\nfailed/);const report=text.match(/report<<([^\n]+)\n([^\n]+)\n\1/);assert.ok(report);assert.equal(JSON.parse(fs.readFileSync(report[2],'utf8')).tool.version,'0.2.2');assert.equal(run('typo').status,2);
+ assert.equal(run('none').status,0);assert.equal(run('medium').status,1);const text=fs.readFileSync(out,'utf8');assert.match(text,/outcome<<[^\n]+\npassed/);assert.match(text,/outcome<<[^\n]+\nfailed/);const report=text.match(/report<<([^\n]+)\n([^\n]+)\n\1/);assert.ok(report);assert.equal(JSON.parse(fs.readFileSync(report[2],'utf8')).tool.version,'0.2.3');assert.equal(run('typo').status,2);
 });
 
 test('read analytics scopes cannot authorize write mutations',t=>{

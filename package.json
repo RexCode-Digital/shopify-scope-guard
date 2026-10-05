@@ -1,7 +1,7 @@
 {
   "name": "shopify-scope-guard",
-  "version": "0.2.2",
-  "description": "Catch missing, redundant, and unproven Shopify access scopes with offline static analysis.",
+  "version": "0.2.3",
+  "description": "Review Shopify app OAuth and API access scopes against static repository evidence with a CLI and GitHub Action.",
   "type": "module",
   "bin": {
     "shopify-scope-guard": "src/cli/index.js"
@@ -43,13 +43,11 @@
   "keywords": [
     "shopify",
     "shopify-app",
-    "shopify-api",
-    "shopify-admin-api",
-    "shopify-graphql",
+    "oauth",
     "access-scopes",
+    "permissions",
     "static-analysis",
-    "developer-tools",
-    "github-action",
+    "github-actions",
     "security"
   ],
   "devDependencies": {

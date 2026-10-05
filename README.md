@@ -77,7 +77,7 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
-      - uses: RexCode-Digital/shopify-scope-guard@4c9077c1b150f54ee488b8996aa7afeee740bae4 # v0.2.1
+      - uses: RexCode-Digital/shopify-scope-guard@8147b20e69fec97f8b533b3ad813fafa77c3f220 # v0.2.2
         with:
           fail-on: high
 ```
@@ -102,7 +102,7 @@ See the [GitHub Action guide](docs/github-action.md).
 
 The `report` output is a JSON report file in the runner temporary directory. SARIF format also writes `scope-guard.sarif` there. `outcome` reflects the selected `fail-on` policy.
 
-The Action is bundled and runs on GitHub's `node20` JavaScript Action runtime. Consumer jobs do not install Scope Guard dependencies separately.
+The Action is bundled and runs on GitHub's `node24` JavaScript Action runtime. Consumer jobs do not install Scope Guard dependencies separately.
 
 ## What it catches today
 
