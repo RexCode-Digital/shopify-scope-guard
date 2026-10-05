@@ -13,7 +13,8 @@
     "LICENSE",
     "CHANGELOG.md",
     "SECURITY.md",
-    "dist"
+    "dist",
+    "THIRD_PARTY_NOTICES.md"
   ],
   "scripts": {
     "test": "node --test",
