@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.2.3
+
+- Refine npm search metadata and Action description for Shopify OAuth/API access-scope review.
+- Correct the README runtime note and refresh the pinned Action release.
+
 ## 0.2.2
 
 - Refresh published npm metadata to the canonical RexCode-Digital repository and issue tracker.
