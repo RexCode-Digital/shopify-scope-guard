@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.2.4
+
+- Add versioned 2026-10 access-scope evidence for payment instrument email, billing fee details, market relationships, and documented Events topics.
+
 ## 0.2.3
 
 - Refine npm search metadata and Action description for Shopify OAuth/API access-scope review.

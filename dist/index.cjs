@@ -22257,7 +22257,7 @@ var import_node_path3 = __toESM(require("node:path"), 1);
 var import_node_crypto = require("node:crypto");
 
 // src/version.js
-var TOOL_VERSION = "0.2.3";
+var TOOL_VERSION = "0.2.4";
 
 // src/analyzer/index.js
 var import_node_fs2 = __toESM(require("node:fs"), 1);
