@@ -1,6 +1,6 @@
 {
   "name": "shopify-scope-guard",
-  "version": "0.2.3",
+  "version": "0.2.4",
   "description": "Review Shopify app OAuth and API access scopes against static repository evidence with a CLI and GitHub Action.",
   "type": "module",
   "bin": {

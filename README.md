@@ -77,7 +77,7 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
-      - uses: RexCode-Digital/shopify-scope-guard@8147b20e69fec97f8b533b3ad813fafa77c3f220 # v0.2.2
+      - uses: RexCode-Digital/shopify-scope-guard@26448b66cc314d66bd6529918a88d97dfbc387c3 # v0.2.3
         with:
           fail-on: high
 ```
@@ -116,10 +116,10 @@ The current evidence pack is intentionally focused on high-confidence Shopify AP
 | Unproven declarations | Declared scopes with no supported usage evidenced |
 | Unknown usage | Shopify-related code that cannot be safely mapped to supported evidence |
 | Admin GraphQL | Supported query and mutation operations matched against documented scope requirements |
-| Shopify app configuration | Required and optional scopes in `shopify.app*.toml` |
+| Shopify app configuration | Required and optional scopes plus known 2026-10 Events topic requirements in `shopify.app*.toml` |
 | SARIF | SARIF 2.1.0 output for code-scanning workflows |
 
-Current high-confidence evidence areas include products, collections, orders, customers, inventory, locations, themes, files, metaobjects, cart transforms, analytics annotations, reports, ShopifyQL, and rollouts.
+Current high-confidence evidence areas include products, collections, orders, customers, inventory, locations, billing fees, markets, themes, files, metaobjects, cart transforms, analytics annotations, reports, ShopifyQL, rollouts, and documented Events topic scopes.
 
 See the [supported patterns](docs/supported-patterns.md) and [rule reference](docs/rule-reference.md).
 
@@ -170,7 +170,7 @@ See the [CLI reference](docs/cli.md).
 
 ## Configuration
 
-Scope Guard reads Shopify app TOML configuration from the repository. It supports `[access_scopes]` `scopes` and `optional_scopes` values.
+Scope Guard reads Shopify app TOML configuration from the repository. It supports `[access_scopes]` `scopes` and `optional_scopes` values. For `[[events.subscription]]`, known topics are mapped only when `[events].api_version` is `2026-10`; unsupported topics and other Events API versions remain UNKNOWN. This checks the topic-level scope only and does not infer extra scopes required by individual triggers or custom queries. Query and filter text is never included in findings.
 
 The CLI supports:
 
@@ -254,7 +254,7 @@ MIT — see [LICENSE](LICENSE).
 The Action example pins the reviewed v0.2.1 release commit. Verify the release reference with:
 
 ```bash
-gh api repos/RexCode-Digital/shopify-scope-guard/git/ref/tags/v0.2.1 --jq .object.sha
+gh api repos/RexCode-Digital/shopify-scope-guard/git/ref/tags/v0.2.3 --jq .object.sha
 ```
 
 Published patch tags are retained; existing minor aliases are movable. A reviewed full commit SHA is the immutable execution reference.

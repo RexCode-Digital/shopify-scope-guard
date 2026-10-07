@@ -22257,7 +22257,7 @@ var import_node_path3 = __toESM(require("node:path"), 1);
 var import_node_crypto = require("node:crypto");
 
 // src/version.js
-var TOOL_VERSION = "0.2.3";
+var TOOL_VERSION = "0.2.4";
 
 // src/analyzer/index.js
 var import_node_fs2 = __toESM(require("node:fs"), 1);
@@ -22295,7 +22295,7 @@ function parseConfig(file) {
   const normalize = (values) => [...new Set(values.map((s) => s.trim()).filter(Boolean))].sort();
   const required = normalize(scopes), normalizedOptional = normalize(optional);
   if (required.some((s) => normalizedOptional.includes(s))) throw new Error("A scope cannot be both required and optional");
-  return { required, optional: normalizedOptional, raw: { required: scopes, optional } };
+  return { required, optional: normalizedOptional, raw: { required: scopes, optional }, events: data.events ?? null };
 }
 
 // src/graphql/index.js
@@ -22382,6 +22382,20 @@ var EVIDENCE_REGISTRY = [
   rule("SG-SCOPE-001", "metaobjects", ["read_metaobjects"], "https://shopify.dev/docs/api/admin-graphql/2026-10/queries/metaobjects", "App-owned metaobjects may have special access behavior; this rule is intentionally conservative for merchant-owned access."),
   rule("SG-SCOPE-001", "metaobject", ["read_metaobjects"], "https://shopify.dev/docs/api/admin-graphql/2026-10/queries/metaobject", "App-owned metaobjects may have special access behavior; this rule is intentionally conservative for merchant-owned access."),
   rule("SG-SCOPE-001", "cartTransformCreate", ["write_cart_transforms"], "https://shopify.dev/docs/api/admin-graphql/2026-10/mutations/carttransformcreate"),
+  rule("SG-SCOPE-001", "paymentInstrumentSendAddEmail", ["write_customers"], "https://shopify.dev/docs/api/admin-graphql/2026-10/mutations/paymentInstrumentSendAddEmail", "The mutation also requires staff create/edit customer permission and read access to the mandate resource.", "2026-10"),
+  rule("SG-SCOPE-001", "feeDetails", ["read_billing"], "https://shopify.dev/docs/api/admin-graphql/2026-10/queries/feeDetails", "", "2026-10"),
+  rule("SG-SCOPE-001", "marketRelationships", ["read_markets"], "https://shopify.dev/changelog/posts/market-relationships", "", "2026-10"),
+  rule("SG-SCOPE-001", "marketRelationshipsStatus", ["read_markets"], "https://shopify.dev/changelog/posts/market-relationships", "", "2026-10"),
+  rule("SG-SCOPE-001", "marketRelationships.nodes.parentMarket", ["read_markets"], "https://shopify.dev/changelog/posts/market-relationships", "", "2026-10"),
+  rule("SG-SCOPE-001", "marketRelationships.nodes.childMarket", ["read_markets"], "https://shopify.dev/changelog/posts/market-relationships", "", "2026-10"),
+  rule("SG-SCOPE-001", "market.parentMarkets", ["read_markets"], "https://shopify.dev/changelog/posts/market-relationships", "", "2026-10"),
+  rule("SG-SCOPE-001", "market.parentMarketsCount", ["read_markets"], "https://shopify.dev/changelog/posts/market-relationships", "", "2026-10"),
+  rule("SG-SCOPE-001", "market.childMarkets", ["read_markets"], "https://shopify.dev/changelog/posts/market-relationships", "", "2026-10"),
+  rule("SG-SCOPE-001", "market.childMarketsCount", ["read_markets"], "https://shopify.dev/changelog/posts/market-relationships", "", "2026-10"),
+  rule("SG-SCOPE-001", "markets.nodes.parentMarkets", ["read_markets"], "https://shopify.dev/changelog/posts/market-relationships", "", "2026-10"),
+  rule("SG-SCOPE-001", "markets.nodes.parentMarketsCount", ["read_markets"], "https://shopify.dev/changelog/posts/market-relationships", "", "2026-10"),
+  rule("SG-SCOPE-001", "markets.nodes.childMarkets", ["read_markets"], "https://shopify.dev/changelog/posts/market-relationships", "", "2026-10"),
+  rule("SG-SCOPE-001", "markets.nodes.childMarketsCount", ["read_markets"], "https://shopify.dev/changelog/posts/market-relationships", "", "2026-10"),
   rule("SG-SCOPE-001", "discountNode", ["read_discounts"], "https://shopify.dev/docs/api/admin-graphql/2026-10/queries/discountNode"),
   rule("SG-SCOPE-001", "discountNode.discount.rollouts", ["read_rollouts"], "https://shopify.dev/docs/api/usage/access-scopes", "Discount.rollouts is available in Admin GraphQL 2026-10+. Reading the discount itself still requires its resource scope, such as read_discounts.", "2026-10"),
   rule("SG-SCOPE-001", "discountNodes", ["read_discounts"], "https://shopify.dev/docs/api/admin-graphql/2026-10/queries/discountNodes"),
@@ -22398,6 +22412,27 @@ var EVIDENCE_REGISTRY = [
   rule("SG-SCOPE-001", "rollout", ["read_rollouts"], "https://shopify.dev/docs/api/admin-graphql/2026-10/queries/rollout", "Reading protected discount payloads within a rollout can additionally require read_discounts; that resource-specific scope is not inferred here.", "2026-10"),
   rule("SG-SCOPE-001", "rollouts", ["read_rollouts"], "https://shopify.dev/docs/api/admin-graphql/2026-10/queries/rollouts", "Reading protected discount payloads within a rollout can additionally require read_discounts; that resource-specific scope is not inferred here.", "2026-10")
 ];
+var eventsTopic = (scopes, slug) => ({ scopes, introduced: "2026-10", source: `https://shopify.dev/docs/api/events/latest/${slug}` });
+var EVENTS_TOPIC_EVIDENCE = Object.freeze({
+  Article: eventsTopic(["read_content", "read_online_store_pages"], "article"),
+  Blog: eventsTopic(["read_content", "read_online_store_pages"], "blog"),
+  Collection: eventsTopic(["read_products"], "collection"),
+  Company: eventsTopic(["read_companies"], "company"),
+  Customer: eventsTopic(["read_customers"], "customer"),
+  FulfillmentOrder: eventsTopic(["read_assigned_fulfillment_orders", "read_marketplace_fulfillment_orders", "read_merchant_managed_fulfillment_orders", "read_third_party_fulfillment_orders"], "fulfillment-order"),
+  InventoryItem: eventsTopic(["read_inventory"], "inventory-item"),
+  InventoryShipment: eventsTopic(["read_inventory_shipments"], "inventory-shipment"),
+  InventoryTransfer: eventsTopic(["read_inventory_transfers"], "inventory-transfer"),
+  Location: eventsTopic(["read_locations"], "location"),
+  MetafieldDefinition: eventsTopic(["read_content"], "metafield-definition"),
+  Metaobject: eventsTopic(["read_metaobjects"], "metaobject"),
+  MetaobjectDefinition: eventsTopic(["read_metaobject_definitions"], "metaobject-definition"),
+  Order: eventsTopic(["read_orders", "read_marketplace_orders", "read_buyer_membership_orders", "read_quick_sale"], "order"),
+  Page: eventsTopic(["read_content", "read_online_store_pages"], "page"),
+  Product: eventsTopic(["read_products"], "product"),
+  Refund: eventsTopic(["read_orders", "read_marketplace_orders", "read_buyer_membership_orders"], "refund"),
+  Return: eventsTopic(["read_returns", "read_marketplace_returns"], "return")
+});
 var IMPLIED_SCOPES = /* @__PURE__ */ new Map([
   ["write_products", "read_products"],
   ["write_orders", "read_orders"],
@@ -22482,6 +22517,23 @@ function audit({ root = ".", configPath, include, exclude = [] } = {}) {
         }
         for (const item of rules) observations.push({ ...item, operationType: op.type, file, line: field.line, operationName: op.name });
       }
+    }
+  }
+  if (config.events !== null) {
+    const events = config.events;
+    if (!events || typeof events !== "object" || Array.isArray(events) || !Array.isArray(events.subscription)) {
+      unknown.push({ file: import_node_path2.default.relative(absoluteRoot, configFile).replaceAll(import_node_path2.default.sep, "/"), line: null, reason: "Events subscriptions could not be mapped from the app configuration." });
+    } else for (const subscription of events.subscription) {
+      if (!subscription || typeof subscription !== "object" || Array.isArray(subscription) || typeof subscription.topic !== "string") {
+        unknown.push({ file: import_node_path2.default.relative(absoluteRoot, configFile).replaceAll(import_node_path2.default.sep, "/"), line: null, reason: "An Events subscription topic could not be mapped safely." });
+        continue;
+      }
+      const evidence = events.api_version === EVIDENCE_VERSION && Object.hasOwn(EVENTS_TOPIC_EVIDENCE, subscription.topic) ? EVENTS_TOPIC_EVIDENCE[subscription.topic] : null;
+      if (!evidence) {
+        unknown.push({ file: import_node_path2.default.relative(absoluteRoot, configFile).replaceAll(import_node_path2.default.sep, "/"), line: null, reason: "An Events topic or API version has no bundled 2026-10 scope evidence." });
+        continue;
+      }
+      observations.push({ ruleId: "SG-SCOPE-001", operation: `events.subscription.${subscription.topic}`, operationType: "events", requires: { anyOf: evidence.scopes }, source: evidence.source, confidence: "high", file: configFile, line: null });
     }
   }
   const observedScopes = new Set(observations.flatMap((o) => o.requires.anyOf));

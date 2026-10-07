@@ -26,5 +26,5 @@ export function parseConfig(file) {
   const normalize = values => [...new Set(values.map(s => s.trim()).filter(Boolean))].sort();
   const required = normalize(scopes), normalizedOptional = normalize(optional);
   if (required.some(s => normalizedOptional.includes(s))) throw new Error('A scope cannot be both required and optional');
-  return { required, optional: normalizedOptional, raw: { required: scopes, optional } };
+  return { required, optional: normalizedOptional, raw: { required: scopes, optional }, events: data.events ?? null };
 }
