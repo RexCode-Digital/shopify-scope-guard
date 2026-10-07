@@ -3,7 +3,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { parseConfig, regularFile } from '../config/index.js';
 import { extractGraphQL } from '../graphql/index.js';
-import { EVIDENCE_REGISTRY, EVIDENCE_VERSION, EVIDENCE_SOURCES, IMPLIED_SCOPES, rulesFor } from '../evidence/registry.js';
+import { EVIDENCE_REGISTRY, EVIDENCE_VERSION, EVIDENCE_SOURCES, EVENTS_TOPIC_EVIDENCE, IMPLIED_SCOPES, rulesFor } from '../evidence/registry.js';
 
 const DEFAULT_IGNORES = new Set(['.git', 'node_modules', 'vendor', 'dist', 'build', 'coverage', '.cache', 'tmp', 'fixtures']);
 const CODE_EXTENSIONS = new Set(['.js', '.jsx', '.ts', '.tsx', '.graphql', '.gql']);
@@ -53,6 +53,23 @@ export function audit({ root = '.', configPath, include, exclude = [] } = {}) {
         if (!rules.length) { if (!field.path.includes('.') && !['shop', '__typename'].includes(field.path)) unknown.push({ file: path.relative(absoluteRoot, file), line: field.line, reason: 'GraphQL root operation is outside the bundled scope registry.' }); continue; }
         for (const item of rules) observations.push({ ...item, operationType: op.type, file, line: field.line, operationName: op.name });
       }
+    }
+  }
+  if (config.events !== null) {
+    const events = config.events;
+    if (!events || typeof events !== 'object' || Array.isArray(events) || !Array.isArray(events.subscription)) {
+      unknown.push({ file: path.relative(absoluteRoot, configFile).replaceAll(path.sep, '/'), line: null, reason: 'Events subscriptions could not be mapped from the app configuration.' });
+    } else for (const subscription of events.subscription) {
+      if (!subscription || typeof subscription !== 'object' || Array.isArray(subscription) || typeof subscription.topic !== 'string') {
+        unknown.push({ file: path.relative(absoluteRoot, configFile).replaceAll(path.sep, '/'), line: null, reason: 'An Events subscription topic could not be mapped safely.' });
+        continue;
+      }
+      const evidence = events.api_version === EVIDENCE_VERSION && Object.hasOwn(EVENTS_TOPIC_EVIDENCE, subscription.topic) ? EVENTS_TOPIC_EVIDENCE[subscription.topic] : null;
+      if (!evidence) {
+        unknown.push({ file: path.relative(absoluteRoot, configFile).replaceAll(path.sep, '/'), line: null, reason: 'An Events topic or API version has no bundled 2026-10 scope evidence.' });
+        continue;
+      }
+      observations.push({ ruleId: 'SG-SCOPE-001', operation: `events.subscription.${subscription.topic}`, operationType: 'events', requires: { anyOf: evidence.scopes }, source: evidence.source, confidence: 'high', file: configFile, line: null });
     }
   }
   const observedScopes = new Set(observations.flatMap(o => o.requires.anyOf));
