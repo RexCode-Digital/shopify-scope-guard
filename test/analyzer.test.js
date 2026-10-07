@@ -27,6 +27,25 @@ test('2026-10 evidence maps analytics, reports, and rollouts', () => {
   assert.ok(r.observations.some(item => item.operation === 'analyticsTargets'));
   assert.ok(r.observations.some(item => item.operation === 'rollouts'));
 });
+test('discount rollouts nested under discountNode require read_rollouts', t => {
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'scope-discount-rollouts-'));
+  t.after(() => fs.rmSync(root, { recursive: true, force: true }));
+  fs.writeFileSync(path.join(root, 'shopify.app.toml'), '[access_scopes]\nscopes="read_discounts"');
+  fs.writeFileSync(path.join(root, 'discount.graphql'), `query DiscountRollouts {
+    discountNode(id: "gid://shopify/DiscountNode/1") {
+      discount { ...RolloutFields }
+    }
+  }
+  fragment RolloutFields on DiscountCodeBasic {
+    rolloutInfo: rollouts(first: 1) { nodes { id } }
+  }`);
+  const report = audit({ root });
+  assert.ok(report.observations.some(item => item.operation === 'discountNode.discount.rollouts' && item.scope.includes('read_rollouts')));
+  assert.ok(report.findings.some(item => item.ruleId === 'SG-SCOPE-001' && item.scope === 'read_rollouts'));
+  assert.equal(report.unknown.length, 0);
+  fs.writeFileSync(path.join(root, 'shopify.app.toml'), '[access_scopes]\nscopes="read_discounts,read_rollouts"');
+  assert.equal(audit({ root }).findings.some(item => item.ruleId === 'SG-SCOPE-001'), false);
+});
 test('json output is stable and parseable', () => { const json = toJson(audit({ root: fixture('02-missing-scope') })); assert.equal(JSON.parse(json).tool.name, 'shopify-scope-guard'); });
 test('sarif output is 2.1.0', () => assert.equal(JSON.parse(toSarif(audit({ root: fixture('02-missing-scope') }))).version, '2.1.0'));
 import fs from 'node:fs';
@@ -44,7 +63,13 @@ for (const rule of EVIDENCE_REGISTRY) {
     const report=audit({root});
     assert.ok(report.observations.some(o=>o.operation===rule.operation));
     assert.ok(report.findings.some(f=>f.scope===rule.requires.anyOf[0]&&f.ruleId==='SG-SCOPE-001'));
-    fs.writeFileSync(path.join(root,'shopify.app.toml'),`[access_scopes]\nscopes="${rule.requires.anyOf[0]}"`);
+    const requiredScopes = new Set();
+    let prefix = '';
+    for (const part of rule.operation.split('.')) {
+      prefix = prefix ? `${prefix}.${part}` : part;
+      for (const ancestor of EVIDENCE_REGISTRY.filter(item => item.operation === prefix && item.operationType === rule.operationType)) requiredScopes.add(ancestor.requires.anyOf[0]);
+    }
+    fs.writeFileSync(path.join(root,'shopify.app.toml'),`[access_scopes]\nscopes="${[...requiredScopes].join(',')}"`);
     assert.ok(!audit({root}).findings.some(f=>f.ruleId==='SG-SCOPE-001'));
   });
 }
