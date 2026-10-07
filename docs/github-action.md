@@ -5,7 +5,7 @@ The bundled Node 24 Action needs `contents: read`. It does not request Shopify c
 Use the current patch release and resolve its commit when pinning a workflow:
 
 ```sh
-gh api repos/RexCode-Digital/shopify-scope-guard/git fetch --tags origin && git rev-parse 'v0.2.4^{commit}'
+git fetch --tags origin && git rev-parse 'v0.2.4^{commit}'
 ```
 
 ```yaml
