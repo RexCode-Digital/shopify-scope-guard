@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+- Classify Admin, Storefront, Customer Account, and ambiguous GraphQL operations independently using nearby source context.
+- Add explicit Shopify API version status and evidence applicability to CLI, Action, JSON, human, and SARIF reports.
+- Make standalone GraphQL documents without API client context UNKNOWN and restrict explicit configuration scans to the selected app root.
+
 ## 0.2.4
 
 - Add versioned 2026-10 access-scope evidence for payment instrument email, billing fee details, market relationships, and documented Events topics.

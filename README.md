@@ -92,15 +92,18 @@ See the [GitHub Action guide](docs/github-action.md).
 | --- | --- | --- |
 | `path` | Repository path to scan | `.` |
 | `config` | Shopify app TOML path | auto-discovered |
+| `api-version` | Admin GraphQL API version used for evidence applicability | `2026-10` |
 | `fail-on` | Minimum finding severity that fails the job | `high` |
 | `format` | Output format: `human`, `json`, or `sarif` | `human` |
 | `show-unmapped` | Show detailed unmapped patterns in human output | `false` |
 
 ### Action outputs
 
-`outcome`, `finding-count`, `high-count`, `medium-count`, `low-count`, `unknown-count`, `missing-scope-count`, `redundant-scope-count`, and `report`.
+`outcome`, `finding-count`, `high-count`, `medium-count`, `low-count`, `unknown-count`, `missing-scope-count`, `redundant-scope-count`, `api-version`, `api-version-status`, `evidence-version`, `evidence-applicable`, and `report`.
 
 The `report` output is a JSON report file in the runner temporary directory. SARIF format also writes `scope-guard.sarif` there. `outcome` reflects the selected `fail-on` policy.
+
+The example above pins v0.2.4, which does not accept the `api-version` Action input or expose the version and evidence outputs listed above. Those additions and the `--api-version` CLI option below are part of the unreleased changes here; npm v0.2.4 does not support that option.
 
 The Action is bundled and runs on GitHub's `node24` JavaScript Action runtime. Consumer jobs do not install Scope Guard dependencies separately.
 
@@ -138,7 +141,7 @@ See the [evidence model](docs/evidence-model.md).
 ## CLI
 
 ```text
-shopify-scope-guard audit [--format human|json|sarif] [--fail-on ...]
+shopify-scope-guard audit [--api-version YYYY-MM] [--format human|json|sarif] [--fail-on ...]
 shopify-scope-guard rules
 shopify-scope-guard explain SG-SCOPE-001
 shopify-scope-guard --version
@@ -156,6 +159,9 @@ npx shopify-scope-guard audit --format json
 # SARIF for code-scanning workflows
 npx shopify-scope-guard audit --format sarif
 
+# Inspect scope evidence for the current release candidate
+npx shopify-scope-guard audit --api-version 2027-01 --format json
+
 # Fail when medium-or-higher findings are present
 npx shopify-scope-guard audit --fail-on medium
 
@@ -165,6 +171,8 @@ npx shopify-scope-guard explain SG-SCOPE-001
 ```
 
 The `--fail-on` option accepts `none`, `low`, `medium`, or `high`. A scan exits `1` when a finding meets the selected threshold, `0` when policy passes, and `2` for usage or scanner errors.
+
+Reports identify the selected version's status, latest stable version, current release candidate, and whether the bundled evidence applies. The current pack is verified for `2026-10`; selecting `2027-01` or another version outside that pack leaves Admin operations UNKNOWN rather than applying mismatched rules.
 
 See the [CLI reference](docs/cli.md).
 
@@ -179,7 +187,7 @@ The CLI supports:
 
 Auto-discovery prefers `shopify.app.toml`, otherwise a single named root configuration. Missing or ambiguous configurations fail explicitly. For nested apps use `audit --path apps/my-app --config shopify.app.production.toml`. Scans are bounded to 2,000 code files and 1 MiB per file; symlinks and bounded-out files appear in `skipped` and require manual review.
 
-Local fragments, inline fragments, and aliases are supported. Explicit Storefront signals stay outside Admin scope evidence. A standalone GraphQL document without a surface signal is assumed to be Admin; do not point an Admin audit at an unlabelled Storefront document set.
+Local fragments, inline fragments, and aliases are supported. Admin, Storefront, and Customer Account operations are classified per GraphQL document when a nearby client signal is clear. Storefront operations stay outside Admin scope evidence; Customer Account and ambiguous operations are reported as UNKNOWN. Standalone `.graphql` documents without client context are UNKNOWN until their API surface can be established.
 
 GraphQL 16 is retained for Node 20 support. Dependabot PR #3 remains open: GraphQL 17.0.2 officially requires Node 22/24/25/26 and is incompatible with Node 20. The minimum Node version will not be raised to satisfy that update.
 
@@ -221,6 +229,8 @@ Building or maintaining Shopify apps?
 - **[ChangeGuard](https://github.com/RexCode-Digital/shopify-app-changeguard)** — Review meaningful Shopify app configuration changes before they reach production.
 - **[Shopify Upgrade Guard](https://github.com/RexCode-Digital/shopify-upgrade-guard)** — Catch documented Shopify API and platform upgrade risks before production migrations.
 - **[Shopify App Review Guard](https://github.com/RexCode-Digital/shopify-app-review-guard)** — Run deterministic preflight checks for Shopify App Store and production readiness.
+
+See the [coordinated workflow example](https://github.com/RexCode-Digital/shopify-app-changeguard/blob/main/docs/ecosystem-workflow.md) to run all four published Actions in one pull-request workflow.
 
 These are independent open-source tools and are not affiliated with Shopify.
 
