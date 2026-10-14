@@ -103,6 +103,8 @@ See the [GitHub Action guide](docs/github-action.md).
 
 The `report` output is a JSON report file in the runner temporary directory. SARIF format also writes `scope-guard.sarif` there. `outcome` reflects the selected `fail-on` policy.
 
+The example above pins v0.2.4, which does not accept the `api-version` Action input or expose the version and evidence outputs listed above. Those additions and the `--api-version` CLI option below are part of the unreleased changes here; npm v0.2.4 does not support that option.
+
 The Action is bundled and runs on GitHub's `node24` JavaScript Action runtime. Consumer jobs do not install Scope Guard dependencies separately.
 
 ## What it catches today
