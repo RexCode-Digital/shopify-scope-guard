@@ -1,4 +1,22 @@
 export const EVIDENCE_VERSION = '2026-10';
+export const API_VERSION_INTELLIGENCE = Object.freeze({
+  latestStable: '2026-10',
+  releaseCandidate: '2027-01',
+  verifiedAt: '2026-10-14',
+  statuses: Object.freeze({
+    '2025-04': 'unsupported',
+    '2025-07': 'unsupported',
+    '2025-10': 'stable',
+    '2026-01': 'stable',
+    '2026-04': 'stable',
+    '2026-07': 'stable',
+    '2026-10': 'stable',
+    '2027-01': 'release-candidate',
+    unstable: 'unstable',
+  }),
+  accessibleUntil: Object.freeze({ '2025-10': '2026-10-16T15:00:00Z' }),
+  source: 'https://shopify.dev/docs/api/usage/versioning',
+});
 export const EVIDENCE_SOURCES = {
   scopes: 'https://shopify.dev/docs/apps/build/authentication-authorization/manage-access-scopes',
   accessScopes: 'https://shopify.dev/docs/api/usage/access-scopes',

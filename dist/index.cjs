@@ -22317,23 +22317,80 @@ function parseGraphQL(source, file, lineOffset = 0) {
   });
   return document.definitions.filter((d) => d.kind === import_graphql.Kind.OPERATION_DEFINITION).map((node) => ({ type: node.operation, name: node.name?.value ?? null, fields: collectFields(node.selectionSet), file, line: (node.loc?.startToken?.line ?? 1) + lineOffset }));
 }
+function maskComments(source) {
+  let output = "", quote = "", escaped = false;
+  for (let index = 0; index < source.length; index++) {
+    const character = source[index], next = source[index + 1];
+    if (quote) {
+      output += character;
+      if (escaped) escaped = false;
+      else if (character === "\\") escaped = true;
+      else if (character === quote) quote = "";
+      continue;
+    }
+    if (character === '"' || character === "'" || character === String.fromCharCode(96)) {
+      quote = character;
+      output += character;
+      continue;
+    }
+    if (character === "/" && next === "/") {
+      output += "  ";
+      index++;
+      while (index + 1 < source.length && source[index + 1] !== "\n") {
+        index++;
+        output += " ";
+      }
+      continue;
+    }
+    if (character === "/" && next === "*") {
+      output += "  ";
+      index++;
+      while (index + 1 < source.length && !(source[index] === "*" && source[index + 1] === "/")) {
+        index++;
+        output += source[index] === "\n" ? "\n" : " ";
+      }
+      if (index + 1 < source.length) {
+        index++;
+        output += " ";
+      }
+      continue;
+    }
+    output += character;
+  }
+  return output;
+}
 function extractGraphQL(text, file) {
-  const documents = /* @__PURE__ */ new Map();
-  if (/\.(graphql|gql)$/i.test(file)) documents.set(0, text);
+  const documents = [];
+  if (/\.(graphql|gql)$/i.test(file)) documents.push({ offset: 0, source: text, end: text.length });
   else {
     const patterns = [/#graphql\s*([\s\S]*?)(?=`)/g, /(?:graphql|gql)\s*(?:\(\s*)?`([\s\S]*?)`/g, /query\s*[:=]\s*`([\s\S]*?)`/g];
     for (const pattern of patterns) for (const match of text.matchAll(pattern)) {
-      const offset = match.index + match[0].indexOf(match[1]);
-      const source = match[1].replace(/^#graphql\s*/, "");
-      if (![...documents.values()].some((d) => d.replace(/^#graphql\s*/, "") === source)) documents.set(offset, match[1]);
+      const raw = match[1], rawOffset = match.index + match[0].indexOf(raw);
+      const prefix = raw.match(/^#graphql\s*/)?.[0] ?? "";
+      const source = raw.slice(prefix.length), offset = rawOffset + prefix.length;
+      if (!documents.some((document) => document.source === source)) documents.push({ offset, source, end: offset + source.length });
     }
   }
   const result = [];
-  for (const [offset, source] of documents) {
+  for (const document of documents) {
+    const lineOffset = text.slice(0, document.offset).split("\n").length - 1;
+    let sourceContext = "";
+    if (!/\.(graphql|gql)$/i.test(file)) {
+      const templateStart = text.lastIndexOf("`", document.offset);
+      const templateEnd = text.indexOf("`", document.end);
+      if (templateStart >= 0 && templateEnd >= 0) {
+        const statementStart = Math.max(text.lastIndexOf(";", templateStart) + 1, templateStart - 180);
+        const before = text.slice(statementStart, templateStart);
+        sourceContext = maskComments(before);
+      }
+    }
     try {
-      result.push(...parseGraphQL(source, file, text.slice(0, offset).split("\n").length - 1));
+      result.push(...parseGraphQL(document.source, file, lineOffset).map((operation) => ({
+        ...operation,
+        sourceContext
+      })));
     } catch {
-      result.push({ type: "unknown", name: null, fields: [], file, line: text.slice(0, offset).split("\n").length, parseError: true });
+      result.push({ type: "unknown", name: null, fields: [], file, line: text.slice(0, document.offset).split("\n").length, parseError: true, sourceContext: "" });
     }
   }
   return result;
@@ -22341,6 +22398,24 @@ function extractGraphQL(text, file) {
 
 // src/evidence/registry.js
 var EVIDENCE_VERSION = "2026-10";
+var API_VERSION_INTELLIGENCE = Object.freeze({
+  latestStable: "2026-10",
+  releaseCandidate: "2027-01",
+  verifiedAt: "2026-10-14",
+  statuses: Object.freeze({
+    "2025-04": "unsupported",
+    "2025-07": "unsupported",
+    "2025-10": "stable",
+    "2026-01": "stable",
+    "2026-04": "stable",
+    "2026-07": "stable",
+    "2026-10": "stable",
+    "2027-01": "release-candidate",
+    unstable: "unstable"
+  }),
+  accessibleUntil: Object.freeze({ "2025-10": "2026-10-16T15:00:00Z" }),
+  source: "https://shopify.dev/docs/api/usage/versioning"
+});
 var EVIDENCE_SOURCES = {
   scopes: "https://shopify.dev/docs/apps/build/authentication-authorization/manage-access-scopes",
   accessScopes: "https://shopify.dev/docs/api/usage/access-scopes",
@@ -22479,34 +22554,79 @@ function walk(root, skipped, current = root, out = []) {
 function finding(ruleId, severity, confidence, scope, file, line, explanation, evidence, source, remediation) {
   return { ruleId, severity, confidence, scope, file: file ?? null, line: line ?? null, explanation, evidence, source, remediation };
 }
-function audit({ root = ".", configPath, include, exclude = [] } = {}) {
-  const absoluteRoot = import_node_path2.default.resolve(root);
+function discoverAppConfigs(root, current = root, result = []) {
+  for (const entry of import_node_fs2.default.readdirSync(current, { withFileTypes: true }).sort((a, b) => a.name.localeCompare(b.name))) {
+    if (entry.name.startsWith(".") || DEFAULT_IGNORES.has(entry.name)) continue;
+    const full = import_node_path2.default.join(current, entry.name);
+    if (entry.isSymbolicLink()) continue;
+    if (entry.isDirectory()) discoverAppConfigs(root, full, result);
+    else if (entry.isFile() && /^shopify\.app(?:\..+)?\.toml$/.test(entry.name)) result.push(full);
+  }
+  return result;
+}
+function operationSurface(operation) {
+  const context = operation.sourceContext ?? "";
+  const evidence = [];
+  if (/\badmin\s*\.\s*graphql\s*\(|\bauthenticate\s*\.\s*admin\b|\/admin\/api\/\d{4}-\d{2}\/graphql\.json|\bcurrentAppInstallation\b/i.test(context)) evidence.push("admin-graphql");
+  if (/\bstorefront\s*\.\s*graphql\s*\(|\bunauthenticated\s*\.\s*storefront\b|storefront-access-token|https?:\/\/[^/\s]+\/api\/\d{4}-\d{2}\/graphql\.json/i.test(context)) evidence.push("storefront-graphql");
+  if (/\bcustomerAccount\s*\.\s*graphql\s*\(|\bunauthenticated\s*\.\s*customerAccount\b|\/customer\/api\//i.test(context)) evidence.push("customer-account-graphql");
+  return evidence.length === 1 ? evidence[0] : null;
+}
+function apiStatus(version, now = /* @__PURE__ */ new Date()) {
+  const status = API_VERSION_INTELLIGENCE.statuses[version];
+  if (status === "stable") {
+    const accessibleUntil = API_VERSION_INTELLIGENCE.accessibleUntil[version];
+    if (accessibleUntil && now.getTime() >= Date.parse(accessibleUntil)) return "unsupported";
+  }
+  return status ?? "unverified";
+}
+function audit({ root = ".", configPath, include, exclude = [], apiVersion = API_VERSION_INTELLIGENCE.latestStable, now = /* @__PURE__ */ new Date() } = {}) {
+  if (typeof apiVersion !== "string" || !/^(?:\d{4}-\d{2}|unstable)$/.test(apiVersion)) throw new Error("API version must use YYYY-MM or unstable");
+  let absoluteRoot = import_node_path2.default.resolve(root);
   if (!import_node_fs2.default.lstatSync(absoluteRoot).isDirectory()) throw new Error("Scan root must be a regular directory");
-  const candidates = import_node_fs2.default.readdirSync(absoluteRoot).filter((f) => /^shopify\.app(?:\..+)?\.toml$/.test(f)).sort();
-  if (!configPath && candidates.length > 1 && !candidates.includes("shopify.app.toml")) throw new Error("Multiple app configurations found; select one with --config");
-  const selected = configPath ?? (candidates.includes("shopify.app.toml") ? "shopify.app.toml" : candidates[0]);
-  if (!selected) throw new Error("Shopify app configuration not found; select one with --config");
-  const configFile = import_node_path2.default.resolve(absoluteRoot, selected);
-  regularFile(absoluteRoot, configFile);
+  let configFile;
+  if (configPath) {
+    configFile = import_node_path2.default.resolve(absoluteRoot, configPath);
+    regularFile(absoluteRoot, configFile);
+    absoluteRoot = import_node_path2.default.dirname(configFile);
+    if (discoverAppConfigs(absoluteRoot).some((file) => import_node_path2.default.dirname(file) !== absoluteRoot)) throw new Error("Nested Shopify app roots found; select one with --path or --config");
+  } else {
+    const candidates = import_node_fs2.default.readdirSync(absoluteRoot).filter((f) => /^shopify\.app(?:\..+)?\.toml$/.test(f)).sort();
+    const nestedRoots = [...new Set(discoverAppConfigs(absoluteRoot).map((file) => import_node_path2.default.dirname(file)).filter((dir) => dir !== absoluteRoot))];
+    if (nestedRoots.length) throw new Error("Nested Shopify app roots found; select one with --path or --config");
+    if (candidates.length > 1 && !candidates.includes("shopify.app.toml")) throw new Error("Multiple app configurations found; select one with --config");
+    const selected = candidates.includes("shopify.app.toml") ? "shopify.app.toml" : candidates[0];
+    if (!selected) throw new Error("Shopify app configuration not found; select one with --config");
+    configFile = import_node_path2.default.resolve(absoluteRoot, selected);
+    regularFile(absoluteRoot, configFile);
+  }
   const config = parseConfig(configFile);
   const skipped = [];
   const files = walk(absoluteRoot, skipped).filter((file) => !exclude.some((value) => file.includes(value)) && (!include || file.includes(include)));
   const observations = [], findings = [], unknown = [];
   for (const file of files) {
     const text = import_node_fs2.default.readFileSync(file, "utf8");
-    const surface = /\/admin\/api\/[^/]+\/graphql\.json|admin\.graphql|authenticate\.admin|currentAppInstallation/.test(text) ? "admin-graphql" : /storefront|unauthenticated_read_/.test(text) ? "storefront" : /\.(graphql|gql)$/i.test(file) ? "admin-graphql" : null;
-    if (!surface && /graphql|shopify/i.test(text)) {
-      unknown.push({ file: import_node_path2.default.relative(absoluteRoot, file), reason: "Shopify-related code could not be assigned to a supported API surface." });
-      continue;
-    }
-    if (surface === "storefront") continue;
     const operations = extractGraphQL(text, file);
-    if (surface === "admin-graphql" && operations.length === 0 && /(admin\.graphql|client\.(query|request)|graphql\s*\()/.test(text)) {
-      unknown.push({ file: import_node_path2.default.relative(absoluteRoot, file), line: 1, reason: "Shopify Admin GraphQL client usage was found, but the query was not a static document." });
+    if (operations.length === 0 && /(?:admin|storefront|customerAccount)\.graphql|\/admin\/api\/|\/customer\/api\//i.test(text)) {
+      unknown.push({ file: import_node_path2.default.relative(absoluteRoot, file), line: 1, reason: "Shopify API client usage was found, but the query was not a static document." });
     }
     for (const op of operations) {
       if (op.parseError) {
         unknown.push({ file: import_node_path2.default.relative(absoluteRoot, file), line: op.line, reason: "GraphQL-like text could not be parsed safely." });
+        continue;
+      }
+      const surface = operationSurface(op);
+      if (!surface) {
+        unknown.push({ file: import_node_path2.default.relative(absoluteRoot, file), line: op.line, reason: "GraphQL operation could not be assigned to one supported API surface." });
+        continue;
+      }
+      if (surface === "storefront-graphql") continue;
+      if (surface === "customer-account-graphql") {
+        unknown.push({ file: import_node_path2.default.relative(absoluteRoot, file), line: op.line, reason: "Customer Account GraphQL is identifiable but is outside the Admin GraphQL scope evidence pack." });
+        continue;
+      }
+      if (apiVersion !== EVIDENCE_VERSION) {
+        unknown.push({ file: import_node_path2.default.relative(absoluteRoot, file), line: op.line, reason: `Admin GraphQL scope evidence is verified for ${EVIDENCE_VERSION} only; selected API version ${apiVersion} is ${apiStatus(apiVersion, now)}.` });
         continue;
       }
       for (const field of op.fields) {
@@ -22515,7 +22635,7 @@ function audit({ root = ".", configPath, include, exclude = [] } = {}) {
           if (!field.path.includes(".") && !["shop", "__typename"].includes(field.path)) unknown.push({ file: import_node_path2.default.relative(absoluteRoot, file), line: field.line, reason: "GraphQL root operation is outside the bundled scope registry." });
           continue;
         }
-        for (const item of rules) observations.push({ ...item, operationType: op.type, file, line: field.line, operationName: op.name });
+        for (const item of rules) observations.push({ ...item, apiSurface: surface, operationType: op.type, file, line: field.line, operationName: op.name });
       }
     }
   }
@@ -22550,7 +22670,25 @@ function audit({ root = ".", configPath, include, exclude = [] } = {}) {
   for (const scope of config.optional) if (!observedScopes.has(scope)) findings.push(finding("SG-SCOPE-004", "low", "high", scope, import_node_path2.default.relative(absoluteRoot, configFile).replaceAll(import_node_path2.default.sep, "/"), null, `No supported usage requiring optional scope ${scope} was evidenced.`, "No matching supported operation found", EVIDENCE_SOURCES.scopes, `Review the optional feature path; this result does not prove the scope is unused.`));
   if (unknown.length) findings.push(finding("SG-SCOPE-006", "info", "low", null, unknown[0].file, unknown[0].line, "Shopify-related code was found but could not be safely mapped to supported static evidence.", unknown.map((item) => item.reason).join("; "), EVIDENCE_SOURCES.scopes, "Review the unmapped code manually."));
   findings.sort((a, b) => `${a.severity}:${a.ruleId}:${a.file}:${a.line}`.localeCompare(`${b.severity}:${b.ruleId}:${b.file}:${b.line}`));
-  return { tool: { name: "shopify-scope-guard", version: TOOL_VERSION }, evidence: { api: "admin-graphql", version: EVIDENCE_VERSION, source: EVIDENCE_SOURCES.versioning }, summary: { declaredRequired: config.required.length, declaredOptional: config.optional.length, evidenced: observedScopes.size, unknown: unknown.length, findingCount: findings.length }, scopes: { required: config.required, optional: config.optional }, observations: observations.map((o) => ({ operation: o.operation, scope: o.requires.anyOf, file: import_node_path2.default.relative(absoluteRoot, o.file).replaceAll(import_node_path2.default.sep, "/"), line: o.line })), findings, unknown, skipped };
+  return {
+    tool: { name: "shopify-scope-guard", version: TOOL_VERSION },
+    evidence: { api: "admin-graphql", version: EVIDENCE_VERSION, source: EVIDENCE_SOURCES.versioning },
+    apiVersion: {
+      selected: apiVersion,
+      status: apiStatus(apiVersion, now),
+      latestStable: API_VERSION_INTELLIGENCE.latestStable,
+      releaseCandidate: API_VERSION_INTELLIGENCE.releaseCandidate,
+      evidenceVersion: EVIDENCE_VERSION,
+      evidenceApplicable: apiVersion === EVIDENCE_VERSION,
+      source: API_VERSION_INTELLIGENCE.source
+    },
+    summary: { declaredRequired: config.required.length, declaredOptional: config.optional.length, evidenced: observedScopes.size, unknown: unknown.length, findingCount: findings.length },
+    scopes: { required: config.required, optional: config.optional },
+    observations: observations.map((o) => ({ operation: o.operation, apiSurface: o.apiSurface ?? "events", scope: o.requires.anyOf, file: import_node_path2.default.relative(absoluteRoot, o.file).replaceAll(import_node_path2.default.sep, "/"), line: o.line })),
+    findings,
+    unknown,
+    skipped
+  };
 }
 
 // src/output/index.js
@@ -22559,7 +22697,9 @@ function toJson(report) {
   return JSON.stringify(report, null, 2) + "\n";
 }
 function toHuman(report, { showUnmapped = false } = {}) {
-  const lines = ["Shopify Scope Guard", "", "Scope audit", "\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500", `Declared: required ${report.summary.declaredRequired}, optional ${report.summary.declaredOptional}`, `Observed: evidenced ${report.summary.evidenced}, unknown ${report.summary.unknown}`, `Findings: ${report.summary.findingCount}`, ""];
+  const lines = ["Shopify Scope Guard", "", "Scope audit", "\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500"];
+  if (report.apiVersion) lines.push(`Admin GraphQL target: ${report.apiVersion.selected} (${report.apiVersion.status}); bundled evidence: ${report.apiVersion.evidenceVersion} (${report.apiVersion.evidenceApplicable ? "applicable" : "not applicable"})`);
+  lines.push(`Declared: required ${report.summary.declaredRequired}, optional ${report.summary.declaredOptional}`, `Observed: evidenced ${report.summary.evidenced}, unknown ${report.summary.unknown}`, `Findings: ${report.summary.findingCount}`, "");
   for (const f of [...report.findings].sort((a, b) => rank[b.severity] - rank[a.severity])) {
     lines.push(`${f.severity.toUpperCase()} ${f.ruleId}${f.scope ? ` \u2014 ${f.scope}` : ""}`, `  ${f.explanation}`, `  Evidence: ${f.evidence}`, `  Source: ${f.source}`, `  Location: ${f.file ?? "repository"}${f.line ? `:${f.line}` : ""}`, `  Recommendation: ${f.remediation}`, "");
   }
@@ -22568,7 +22708,7 @@ function toHuman(report, { showUnmapped = false } = {}) {
   return lines.join("\n");
 }
 function toSarif(report) {
-  return JSON.stringify({ version: "2.1.0", $schema: "https://json.schemastore.org/sarif-2.1.0.json", runs: [{ tool: { driver: { name: report.tool.name, version: report.tool.version, informationUri: "https://github.com/RexCode-Digital/shopify-scope-guard", rules: [...new Map(report.findings.map((f) => [f.ruleId, { id: f.ruleId, shortDescription: { text: f.explanation }, helpUri: f.source }])).values()] } }, results: report.findings.map((f) => ({ ruleId: f.ruleId, level: f.severity === "high" ? "error" : f.severity === "medium" ? "warning" : "note", message: { text: f.explanation }, locations: f.file ? [{ physicalLocation: { artifactLocation: { uri: f.file.split("/").map(encodeURIComponent).join("/") }, region: f.line ? { startLine: f.line } : void 0 } }] : void 0 })) }] }, null, 2) + "\n";
+  return JSON.stringify({ version: "2.1.0", $schema: "https://json.schemastore.org/sarif-2.1.0.json", runs: [{ tool: { driver: { name: report.tool.name, version: report.tool.version, informationUri: "https://github.com/RexCode-Digital/shopify-scope-guard", rules: [...new Map(report.findings.map((f) => [f.ruleId, { id: f.ruleId, shortDescription: { text: f.explanation }, helpUri: f.source }])).values()] } }, properties: { apiVersion: report.apiVersion }, results: report.findings.map((f) => ({ ruleId: f.ruleId, level: f.severity === "high" ? "error" : f.severity === "medium" ? "warning" : "note", message: { text: f.explanation }, locations: f.file ? [{ physicalLocation: { artifactLocation: { uri: f.file.split("/").map(encodeURIComponent).join("/") }, region: f.line ? { startLine: f.line } : void 0 } }] : void 0 })) }] }, null, 2) + "\n";
 }
 
 // src/policy.js
@@ -22588,7 +22728,7 @@ try {
   const format = input("format") || "human", threshold = input("fail-on") || "high";
   validateOptions({ format, failOn: threshold });
   if (input("show-unmapped") && !["true", "false"].includes(input("show-unmapped"))) throw new Error("show-unmapped must be true or false");
-  const report = audit({ root: input("path") || ".", configPath: input("config") || void 0 });
+  const report = audit({ root: input("path") || ".", configPath: input("config") || void 0, apiVersion: input("api-version") || void 0 });
   const rendered = format === "json" ? toJson(report) : format === "sarif" ? toSarif(report) : toHuman(report, { showUnmapped: input("show-unmapped") === "true" });
   const stop = (0, import_node_crypto.randomUUID)();
   console.log(`::stop-commands::${stop}
@@ -22600,7 +22740,7 @@ ${rendered}
   if (format === "sarif") import_node_fs3.default.writeFileSync(import_node_path3.default.join(directory, "scope-guard.sarif"), rendered);
   const counts = (severity) => report.findings.filter((f) => f.severity === severity).length;
   const failed = shouldFail(report, threshold);
-  const values = { outcome: failed ? "failed" : "passed", "finding-count": report.findings.length, "high-count": counts("high"), "medium-count": counts("medium"), "low-count": counts("low"), "unknown-count": report.summary.unknown, "missing-scope-count": report.findings.filter((f) => ["SG-SCOPE-001", "SG-SCOPE-002"].includes(f.ruleId)).length, "redundant-scope-count": report.findings.filter((f) => f.ruleId === "SG-SCOPE-003").length, report: reportPath };
+  const values = { outcome: failed ? "failed" : "passed", "finding-count": report.findings.length, "high-count": counts("high"), "medium-count": counts("medium"), "low-count": counts("low"), "unknown-count": report.summary.unknown, "missing-scope-count": report.findings.filter((f) => ["SG-SCOPE-001", "SG-SCOPE-002"].includes(f.ruleId)).length, "redundant-scope-count": report.findings.filter((f) => f.ruleId === "SG-SCOPE-003").length, "api-version": report.apiVersion.selected, "api-version-status": report.apiVersion.status, "evidence-version": report.apiVersion.evidenceVersion, "evidence-applicable": report.apiVersion.evidenceApplicable, report: reportPath };
   if (process.env.GITHUB_OUTPUT) for (const [key, value] of Object.entries(values)) {
     const delimiter = (0, import_node_crypto.randomUUID)();
     import_node_fs3.default.appendFileSync(process.env.GITHUB_OUTPUT, `${key}<<${delimiter}

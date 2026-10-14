@@ -18,7 +18,7 @@ function root(t, app, files = {}) {
 
 test('2026-10 payment, billing, and market hierarchy evidence is mapped to official scopes', t => {
   const dir = root(t, '[access_scopes]\nscopes=""', {
-    'api.graphql': `mutation AddPayment { paymentInstrumentSendAddEmail(mandate: { resourceType: ORDERS, resourceId: "1" }) { customer { id } } }\nquery BillingAndMarkets { feeDetails { id } marketRelationshipsStatus { version } marketRelationships(first: 1) { nodes { parentMarket { id } childMarket { id } } } market(id: "gid://shopify/Market/1") { parentMarkets(first: 1) { nodes { id } } childMarketsCount } }`
+    'api.ts': `const response = await admin.graphql(\`#graphql\nmutation AddPayment { paymentInstrumentSendAddEmail(mandate: { resourceType: ORDERS, resourceId: "1" }) { customer { id } } }\nquery BillingAndMarkets { feeDetails { id } marketRelationshipsStatus { version } marketRelationships(first: 1) { nodes { parentMarket { id } childMarket { id } } } market(id: "gid://shopify/Market/1") { parentMarkets(first: 1) { nodes { id } } childMarketsCount } }\n\`);`
   });
   const report = audit({ root: dir });
   for (const [operation, scope] of [['paymentInstrumentSendAddEmail', 'write_customers'], ['feeDetails', 'read_billing'], ['marketRelationships', 'read_markets'], ['marketRelationshipsStatus', 'read_markets'], ['marketRelationships.nodes.parentMarket', 'read_markets'], ['marketRelationships.nodes.childMarket', 'read_markets'], ['market.parentMarkets', 'read_markets'], ['market.childMarketsCount', 'read_markets']]) {
@@ -45,4 +45,24 @@ test('unknown Events topics and non-2026-10 API versions remain unknown', t => {
     assert.ok(report.unknown.some(item => item.reason.includes('Events topic or API version')));
     assert.ok(!report.observations.some(item => item.operation.startsWith('events.subscription.')));
   }
+});
+
+test('API version intelligence distinguishes current stable from release candidate', t => {
+  const dir = root(t, '[access_scopes]\nscopes=""');
+  const report = audit({ root: dir });
+  assert.deepEqual(
+    { selected: report.apiVersion.selected, status: report.apiVersion.status, applicable: report.apiVersion.evidenceApplicable },
+    { selected: '2026-10', status: 'stable', applicable: true },
+  );
+  const rc = audit({ root: dir, apiVersion: '2027-01' });
+  assert.equal(rc.apiVersion.status, 'release-candidate');
+  assert.equal(rc.apiVersion.evidenceApplicable, false);
+});
+
+test('2025-10 remains supported until Shopify accessibility deadline', t => {
+  const dir = root(t, '[access_scopes]\nscopes=""');
+  const beforeDeadline = audit({ root: dir, apiVersion: '2025-10', now: new Date('2026-10-16T14:59:59Z') });
+  assert.equal(beforeDeadline.apiVersion.status, 'stable');
+  const atDeadline = audit({ root: dir, apiVersion: '2025-10', now: new Date('2026-10-16T15:00:00Z') });
+  assert.equal(atDeadline.apiVersion.status, 'unsupported');
 });

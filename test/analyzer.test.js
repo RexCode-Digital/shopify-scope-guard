@@ -31,14 +31,16 @@ test('discount rollouts nested under discountNode require read_rollouts', t => {
   const root = fs.mkdtempSync(path.join(os.tmpdir(), 'scope-discount-rollouts-'));
   t.after(() => fs.rmSync(root, { recursive: true, force: true }));
   fs.writeFileSync(path.join(root, 'shopify.app.toml'), '[access_scopes]\nscopes="read_discounts"');
-  fs.writeFileSync(path.join(root, 'discount.graphql'), `query DiscountRollouts {
+  fs.writeFileSync(path.join(root, 'discount.ts'), `const response = await admin.graphql(\`#graphql
+query DiscountRollouts {
     discountNode(id: "gid://shopify/DiscountNode/1") {
       discount { ...RolloutFields }
     }
   }
   fragment RolloutFields on DiscountCodeBasic {
     rolloutInfo: rollouts(first: 1) { nodes { id } }
-  }`);
+  }
+\`);`);
   const report = audit({ root });
   assert.ok(report.observations.some(item => item.operation === 'discountNode.discount.rollouts' && item.scope.includes('read_rollouts')));
   assert.ok(report.findings.some(item => item.ruleId === 'SG-SCOPE-001' && item.scope === 'read_rollouts'));
@@ -59,7 +61,7 @@ for (const rule of EVIDENCE_REGISTRY) {
     const parts=rule.operation.split('.');
     let selection = parts.pop() + '{ id }';
     for(const part of parts.reverse()) selection = `${part} { ${selection} }`;
-    fs.writeFileSync(path.join(root,'operation.graphql'),`${rule.operationType} { ${selection} }`);
+    fs.writeFileSync(path.join(root,'operation.ts'),`const response = await admin.graphql(\`#graphql\n${rule.operationType} { ${selection} }\n\`);`);
     const report=audit({root});
     assert.ok(report.observations.some(o=>o.operation===rule.operation));
     assert.ok(report.findings.some(f=>f.scope===rule.requires.anyOf[0]&&f.ruleId==='SG-SCOPE-001'));

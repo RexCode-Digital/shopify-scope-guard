@@ -1,3 +1,4 @@
+const response = await admin.graphql(`#graphql
 query Stable202610Evidence {
   shop {
     analyticsAnnotations(first: 1) { nodes { id } }
@@ -10,3 +11,4 @@ mutation Stable202610Writes {
   analyticsAnnotationCreate(input: {title: "release"}) { analyticsAnnotation { id } }
   analyticsTargetCreate(input: {name: "release"}) { analyticsTarget { id } }
 }
+`);
