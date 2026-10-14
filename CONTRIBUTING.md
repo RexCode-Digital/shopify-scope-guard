@@ -29,3 +29,5 @@ Before opening a pull request, also run `npm run coverage`, `npm audit --omit=de
 - Use privacy-safe fixtures with no credentials, tokens, or merchant data.
 
 See the [open issues](https://github.com/RexCode-Digital/shopify-scope-guard/issues) for current opportunities.
+
+These repositories use a solo-maintainer review model. Keep changes in pull requests and merge only after the required automated checks pass. CODEOWNERS may route review requests, but human approval is not a merge requirement.
