@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.3.0
+
 - Classify Admin, Storefront, Customer Account, and ambiguous GraphQL operations independently using nearby source context.
 - Add explicit Shopify API version status and evidence applicability to CLI, Action, JSON, human, and SARIF reports.
 - Make standalone GraphQL documents without API client context UNKNOWN and restrict explicit configuration scans to the selected app root.
