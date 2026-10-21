@@ -8,7 +8,7 @@ You retain copyright in your contributions. By submitting a contribution, you ag
 
 ## Development setup
 
-Use Node.js 20 or newer, then install the locked dependencies:
+Use Node.js 22 or newer, then install the locked dependencies:
 
 ```sh
 npm ci

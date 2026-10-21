@@ -2,7 +2,7 @@
 import { TOOL_VERSION } from '../version.js';
 import { audit } from '../analyzer/index.js';
 import { toHuman, toJson, toSarif } from '../output/index.js';
-import { EVIDENCE_REGISTRY, EVIDENCE_VERSION, API_VERSION_INTELLIGENCE } from '../evidence/registry.js';
+import { EVIDENCE_REGISTRY, EVIDENCE_VERSION, API_VERSION_INTELLIGENCE, CLASSIC_WEBHOOK_TOPIC_EVIDENCE } from '../evidence/registry.js';
 import { shouldFail, validateOptions } from '../policy.js';
 const args = process.argv.slice(2);
 const help = 'Usage: shopify-scope-guard audit [path] [--path DIR] [--config FILE] [--api-version YYYY-MM] [--include TEXT] [--format human|json|sarif] [--fail-on none|low|medium|high] [--show-unmapped]\n       shopify-scope-guard rules|explain RULE|--version';
@@ -10,8 +10,13 @@ if (args.includes('--help') || args.includes('-h')) { console.log(help); process
 if (args.includes('--version') || args[0] === 'version') { console.log(TOOL_VERSION); process.exit(0); }
 const command = args[0] && !args[0].startsWith('-') ? args.shift() : 'audit';
 try {
-  if (command === 'rules') { console.log(JSON.stringify({ evidenceVersion: EVIDENCE_VERSION, apiVersions: API_VERSION_INTELLIGENCE, rules: EVIDENCE_REGISTRY }, null, 2)); process.exit(0); }
-  if (command === 'explain') { const rules = EVIDENCE_REGISTRY.filter(r => r.ruleId === args[0]); if (!rules.length) throw new Error('Unknown rule ID'); console.log(JSON.stringify(rules, null, 2)); process.exit(0); }
+  if (command === 'rules') { console.log(JSON.stringify({ evidenceVersion: EVIDENCE_VERSION, apiVersions: API_VERSION_INTELLIGENCE, rules: EVIDENCE_REGISTRY, classicWebhookTopics: CLASSIC_WEBHOOK_TOPIC_EVIDENCE }, null, 2)); process.exit(0); }
+  if (command === 'explain') {
+    const rules = EVIDENCE_REGISTRY.filter(r => r.ruleId === args[0]);
+    if (args[0] === 'SG-SCOPE-001') for (const [topic, evidence] of Object.entries(CLASSIC_WEBHOOK_TOPIC_EVIDENCE)) rules.push({ ruleId: evidence.ruleId, api: evidence.apiSurface, operation: `webhooks.subscriptions.${topic}`, operationType: 'webhook', requires: { anyOf: evidence.scopes }, apiVersions: evidence.apiVersions, evidenceVersion: evidence.evidenceVersion, lastVerified: evidence.lastVerified, confidence: evidence.confidence, source: evidence.source, notes: evidence.note });
+    if (!rules.length) throw new Error('Unknown rule ID');
+    console.log(JSON.stringify(rules, null, 2)); process.exit(0);
+  }
   if (command !== 'audit') throw new Error(help);
   const options = {}; let positional;
   for (let i = 0; i < args.length; i++) {

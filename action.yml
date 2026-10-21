@@ -24,6 +24,9 @@ outputs:
   evidence-applicable: { description: Whether the evidence pack applies to the selected Admin GraphQL API version }
   missing-scope-count: { description: Missing or optional-required scope findings }
   redundant-scope-count: { description: Redundant scope findings }
+  webhook-evidenced-count: { description: Classic webhook topics with a required scope evidenced in app configuration }
+  webhook-not-evidenced-count: { description: Mapped classic webhook topics whose required scopes are missing or optional only }
+  webhook-unknown-count: { description: Classic webhook topics or API versions outside the offline evidence registry }
   report: { description: JSON report path }
 runs:
   using: node24

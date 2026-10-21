@@ -3,7 +3,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { parseConfig, regularFile } from '../config/index.js';
 import { extractGraphQL } from '../graphql/index.js';
-import { EVIDENCE_REGISTRY, EVIDENCE_VERSION, EVIDENCE_SOURCES, EVENTS_TOPIC_EVIDENCE, IMPLIED_SCOPES, API_VERSION_INTELLIGENCE, rulesFor } from '../evidence/registry.js';
+import { EVIDENCE_REGISTRY, EVIDENCE_VERSION, EVIDENCE_SOURCES, EVENTS_TOPIC_EVIDENCE, CLASSIC_WEBHOOK_TOPIC_EVIDENCE, IMPLIED_SCOPES, API_VERSION_INTELLIGENCE, rulesFor } from '../evidence/registry.js';
 
 const DEFAULT_IGNORES = new Set(['.git', 'node_modules', 'vendor', 'dist', 'build', 'coverage', '.cache', 'tmp', 'fixtures']);
 const CODE_EXTENSIONS = new Set(['.js', '.jsx', '.ts', '.tsx', '.graphql', '.gql']);
@@ -79,6 +79,7 @@ export function audit({ root = '.', configPath, include, exclude = [], apiVersio
   const skipped = [];
   const files = walk(absoluteRoot, skipped).filter(file => !exclude.some(value => file.includes(value)) && (!include || file.includes(include)));
   const observations = [], findings = [], unknown = [];
+  const classicWebhookSummary = { evidenced: 0, notEvidenced: 0, unknown: 0 };
   for (const file of files) {
     const text = fs.readFileSync(file, 'utf8');
     const operations = extractGraphQL(text, file);
@@ -120,6 +121,62 @@ export function audit({ root = '.', configPath, include, exclude = [], apiVersio
       observations.push({ ruleId: 'SG-SCOPE-001', operation: `events.subscription.${subscription.topic}`, operationType: 'events', requires: { anyOf: evidence.scopes }, source: evidence.source, confidence: 'high', file: configFile, line: null });
     }
   }
+  if (config.webhooks !== null) {
+    const webhooks = config.webhooks;
+    const configRelative = path.relative(absoluteRoot, configFile).replaceAll(path.sep, '/');
+    const addWebhookUnknown = reason => {
+      classicWebhookSummary.unknown++;
+      unknown.push({ file: configRelative, line: null, reason });
+    };
+    if (!webhooks || typeof webhooks !== 'object' || Array.isArray(webhooks)) {
+      addWebhookUnknown('Classic webhook subscriptions could not be mapped from the app configuration.');
+    } else if (webhooks.subscriptions !== undefined && !Array.isArray(webhooks.subscriptions)) {
+      addWebhookUnknown('Classic webhook subscriptions could not be mapped from the app configuration.');
+    } else {
+      const seenTopics = new Set();
+      for (const subscription of webhooks.subscriptions ?? []) {
+        if (!subscription || typeof subscription !== 'object' || Array.isArray(subscription)) {
+          addWebhookUnknown('A classic webhook subscription could not be mapped safely.');
+          continue;
+        }
+        if (!Array.isArray(subscription.topics) || subscription.topics.length === 0) {
+          // Compliance-only subscriptions use `compliance_topics`, which is a
+          // separate configuration surface and is not scope-mapped here.
+          addWebhookUnknown('A classic webhook subscription has no supported topic list.');
+          continue;
+        }
+        for (const topic of subscription.topics) {
+          if (typeof topic !== 'string' || !topic || topic.length > 200) {
+            addWebhookUnknown('A classic webhook topic could not be mapped safely.');
+            continue;
+          }
+          if (seenTopics.has(topic)) continue;
+          seenTopics.add(topic);
+          const evidence = Object.hasOwn(CLASSIC_WEBHOOK_TOPIC_EVIDENCE, topic) ? CLASSIC_WEBHOOK_TOPIC_EVIDENCE[topic] : null;
+          if (!evidence || !evidence.apiVersions.includes(webhooks.api_version)) {
+            addWebhookUnknown('A classic webhook topic or API version has no bundled scope evidence.');
+            continue;
+          }
+          const requiredScopeIsDeclared = evidence.scopes.some(scope => config.required.includes(scope) || config.required.some(write => IMPLIED_SCOPES.get(write) === scope));
+          const evidenceStatus = requiredScopeIsDeclared ? 'EVIDENCED' : 'NOT EVIDENCED';
+          classicWebhookSummary[requiredScopeIsDeclared ? 'evidenced' : 'notEvidenced']++;
+          observations.push({
+            ruleId: evidence.ruleId,
+            operation: `webhooks.subscriptions.${topic}`,
+            operationType: 'webhook',
+            apiSurface: 'classic-webhook',
+            requires: { anyOf: evidence.scopes },
+            source: evidence.source,
+            confidence: evidence.confidence,
+            evidenceStatus,
+            evidenceVersion: evidence.evidenceVersion,
+            file: configFile,
+            line: null,
+          });
+        }
+      }
+    }
+  }
   const observedScopes = new Set(observations.flatMap(o => o.requires.anyOf));
   const satisfied = scope => config.required.includes(scope) || [...config.required].some(s => IMPLIED_SCOPES.get(s) === scope);
   for (const observation of observations) {
@@ -127,7 +184,10 @@ export function audit({ root = '.', configPath, include, exclude = [], apiVersio
     const optionalScope = observation.requires.anyOf.find(s => config.optional.includes(s) || config.optional.some(write => IMPLIED_SCOPES.get(write) === s));
     const scope = optionalScope ?? observation.requires.anyOf[0];
     const severity = 'high';
-    findings.push(finding(Boolean(optionalScope) ? 'SG-SCOPE-002' : 'SG-SCOPE-001', severity, observation.confidence, scope, path.relative(absoluteRoot, observation.file).replaceAll(path.sep, '/'), observation.line, Boolean(optionalScope) ? `The code evidences ${scope}, but it is declared optional.` : `The ${observation.operation} operation requires one of ${observation.requires.anyOf.join(', ')}, and none is declared as required.`, `${observation.operation} ${observation.operationType}`, observation.source, `Declare ${scope} as required, or make the code path conditional on an optional-scope request.`));
+    const remediation = observation.apiSurface === 'classic-webhook'
+      ? `Declare one of ${observation.requires.anyOf.join(', ')} as required. Optional scopes are not treated as granted.`
+      : `Declare ${scope} as required, or make the code path conditional on an optional-scope request.`;
+    findings.push(finding(Boolean(optionalScope) ? 'SG-SCOPE-002' : 'SG-SCOPE-001', severity, observation.confidence, scope, path.relative(absoluteRoot, observation.file).replaceAll(path.sep, '/'), observation.line, Boolean(optionalScope) ? `The code evidences ${scope}, but it is declared optional.` : `The ${observation.operation} operation requires one of ${observation.requires.anyOf.join(', ')}, and none is declared as required.`, `${observation.operation} ${observation.operationType}`, observation.source, remediation));
   }
   for (const [write, read] of IMPLIED_SCOPES) if (config.required.includes(write) && (config.required.includes(read) || config.optional.includes(read))) findings.push(finding('SG-SCOPE-003', 'medium', 'high', read, path.relative(absoluteRoot, configFile).replaceAll(path.sep, '/'), null, `${write} already grants read access to this resource; the separate ${read} declaration is redundant.`, `${write} implies ${read}`, EVIDENCE_SOURCES.scopes, `Remove ${read} from the declarations unless you intentionally replace ${write}.`));
   for (const scope of config.required) if (!observedScopes.has(scope) && ![...observedScopes].some(s => IMPLIED_SCOPES.get(s) === scope) && ![...IMPLIED_SCOPES.entries()].some(([write, read]) => write === scope && observedScopes.has(read))) findings.push(finding('SG-SCOPE-004', 'low', 'high', scope, path.relative(absoluteRoot, configFile).replaceAll(path.sep, '/'), null, `No supported usage requiring ${scope} was evidenced.`, 'No matching supported operation found', EVIDENCE_SOURCES.scopes, `Review whether ${scope} is still needed; static analysis cannot prove it is unused.`));
@@ -146,9 +206,16 @@ export function audit({ root = '.', configPath, include, exclude = [], apiVersio
       evidenceApplicable: apiVersion === EVIDENCE_VERSION,
       source: API_VERSION_INTELLIGENCE.source,
     },
-    summary: { declaredRequired: config.required.length, declaredOptional: config.optional.length, evidenced: observedScopes.size, unknown: unknown.length, findingCount: findings.length },
+    summary: { declaredRequired: config.required.length, declaredOptional: config.optional.length, evidenced: observedScopes.size, unknown: unknown.length, findingCount: findings.length, classicWebhooks: classicWebhookSummary },
     scopes: { required: config.required, optional: config.optional },
-    observations: observations.map(o => ({ operation: o.operation, apiSurface: o.apiSurface ?? 'events', scope: o.requires.anyOf, file: path.relative(absoluteRoot, o.file).replaceAll(path.sep, '/'), line: o.line })),
+    observations: observations.map(o => ({
+      operation: o.operation,
+      apiSurface: o.apiSurface ?? 'events',
+      scope: o.requires.anyOf,
+      file: path.relative(absoluteRoot, o.file).replaceAll(path.sep, '/'),
+      line: o.line,
+      ...(o.apiSurface === 'classic-webhook' ? { evidenceStatus: o.evidenceStatus, confidence: o.confidence, source: o.source, evidenceVersion: o.evidenceVersion } : {}),
+    })),
     findings, unknown, skipped,
   };
 }

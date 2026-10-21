@@ -1,3 +1,5 @@
 # Scope model
 
-Required scopes are requested at installation. Optional scopes are requested dynamically and may be declined. A write scope can imply the corresponding read scope where Shopify documents that relationship. The analyzer does not infer actual merchant grants.
+Required scopes are requested at installation. Optional scopes are requested dynamically and may be declined, so an optional declaration is not evidence that a required webhook scope is available. For the two mapped webhook topics, the analyzer recognises the documented `write_products` → `read_products`, `write_orders` → `read_orders`, and `write_marketplace_orders` → `read_marketplace_orders` implications. The analyzer does not infer actual merchant grants or Shopify approval for restricted scopes. `read_marketplace_orders` requires Shopify approval and covers only orders attributed to the app; it is not equivalent to `read_orders`.
+
+For mapped classic webhook topics, EVIDENCED means at least one documented required-scope alternative is declared as required or satisfied by a documented implication. NOT EVIDENCED means no required alternative is declared, including when an alternative appears only under `optional_scopes`. UNKNOWN means the topic or webhook API version is outside the evidence registry; it does not mean the webhook needs no scope.
