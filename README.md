@@ -77,12 +77,12 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
-      - uses: RexCode-Digital/shopify-scope-guard@30d08c644114399c0ee0257954205b97fb9fcbd3 # v0.2.4
+      - uses: RexCode-Digital/shopify-scope-guard@da4d786f22049e2e96728918ebaaa1f362898d84 # v0.4.0
         with:
           fail-on: high
 ```
 
-For high-assurance workflows, pin third-party Actions to reviewed immutable commit SHAs. `v0.2.4` identifies the current patch release; use a resolved SHA for immutable execution.
+For high-assurance workflows, pin third-party Actions to reviewed immutable commit SHAs. `v0.4.0` is the current release and the example uses its resolved commit SHA.
 
 See the [GitHub Action guide](docs/github-action.md).
 
@@ -103,7 +103,7 @@ See the [GitHub Action guide](docs/github-action.md).
 
 The `report` output is a JSON report file in the runner temporary directory. SARIF format also writes `scope-guard.sarif` there. `outcome` reflects the selected `fail-on` policy.
 
-The example above pins v0.2.4, which does not accept the `api-version` Action input or expose the version and evidence outputs listed above. Those additions and the `--api-version` CLI option below are part of the unreleased changes here; npm v0.2.4 does not support that option.
+The pinned v0.4.0 release supports the `api-version` input, version and evidence outputs, and the `--api-version` CLI option. Unsupported API versions, surfaces, and topics remain UNKNOWN.
 
 The Action is bundled and runs on GitHub's `node24` JavaScript Action runtime. Consumer jobs do not install Scope Guard dependencies separately.
 
@@ -262,10 +262,10 @@ MIT — see [LICENSE](LICENSE).
 
 ## Immutable SHA usage
 
-The Action example pins the reviewed v0.3.0 release commit. Verify the release reference with:
+The Action example pins the reviewed v0.4.0 release commit. Verify the release reference with:
 
 ```bash
-git fetch --tags origin && git rev-parse 'v0.3.0^{commit}'
+git fetch --tags origin && git rev-parse 'v0.4.0^{commit}'
 ```
 
-Published patch tags are retained; existing minor aliases are movable. A reviewed full commit SHA is the immutable execution reference. The webhook evidence described above is unreleased until a later version is published.
+Published patch tags are retained; existing minor aliases are movable. A reviewed full commit SHA is the immutable execution reference. Scope Guard 0.4.0 includes the webhook evidence described above for the supported API version; unsupported topics and versions remain UNKNOWN.
