@@ -17,7 +17,7 @@ Shopify Scope Guard is an offline, deterministic, read-only static analyzer for 
 
 Maintained by RexCode Digital Ltd.
 
-Part of the **RexCode Shopify developer tools** suite. Requires Node.js 20 or later for the CLI. [Releases](https://github.com/RexCode-Digital/shopify-scope-guard/releases) · [npm](https://www.npmjs.com/package/shopify-scope-guard) · [Marketplace](https://github.com/marketplace/actions/shopify-scope-guard)
+Part of the **RexCode Shopify developer tools** suite. The CLI requires Node.js 22 or later; the GitHub Action uses Node.js 24. [Releases](https://github.com/RexCode-Digital/shopify-scope-guard/releases) · [npm](https://www.npmjs.com/package/shopify-scope-guard) · [Marketplace](https://github.com/marketplace/actions/shopify-scope-guard)
 
 ## Quick start
 
@@ -119,7 +119,8 @@ The current evidence pack is intentionally focused on high-confidence Shopify AP
 | Unproven declarations | Declared scopes with no supported usage evidenced |
 | Unknown usage | Shopify-related code that cannot be safely mapped to supported evidence |
 | Admin GraphQL | Supported query and mutation operations matched against documented scope requirements |
-| Shopify app configuration | Required and optional scopes plus known 2026-10 Events topic requirements in `shopify.app*.toml` |
+| Classic webhooks | `products/update` and `orders/create` topic requirements in `[[webhooks.subscriptions]]` |
+| Shopify app configuration | Required and optional scopes plus versioned webhook and 2026-10 Events topic requirements in `shopify.app*.toml` |
 | SARIF | SARIF 2.1.0 output for code-scanning workflows |
 
 Current high-confidence evidence areas include products, collections, orders, customers, inventory, locations, billing fees, markets, themes, files, metaobjects, cart transforms, analytics annotations, reports, ShopifyQL, rollouts, and documented Events topic scopes.
@@ -134,7 +135,7 @@ Scope Guard deliberately separates evidence from certainty.
 - **NOT EVIDENCED** — no supported usage requiring the scope was evidenced. This does **not** prove that the scope is unused.
 - **UNKNOWN** — Shopify-related code could not be safely mapped to supported evidence. UNKNOWN is deliberately conservative and is never classified as unused.
 
-The bundled high-confidence evidence pack is versioned against Shopify API `2026-10`. Evidence is based on documented Shopify access-scope relationships and supported static patterns, not live store permissions.
+The bundled high-confidence evidence pack is versioned against Shopify API `2026-10`. For classic webhooks, EVIDENCED means that a required scope alternative is declared (including a documented write-to-read implication); an optional declaration is NOT EVIDENCED because merchants can decline it. Unmapped topics and unsupported webhook API versions remain UNKNOWN. Evidence is based on documented Shopify access-scope relationships and supported static patterns, not live store permissions.
 
 See the [evidence model](docs/evidence-model.md).
 
@@ -178,7 +179,7 @@ See the [CLI reference](docs/cli.md).
 
 ## Configuration
 
-Scope Guard reads Shopify app TOML configuration from the repository. It supports `[access_scopes]` `scopes` and `optional_scopes` values. For `[[events.subscription]]`, known topics are mapped only when `[events].api_version` is `2026-10`; unsupported topics and other Events API versions remain UNKNOWN. This checks the topic-level scope only and does not infer extra scopes required by individual triggers or custom queries. Query and filter text is never included in findings.
+Scope Guard reads Shopify app TOML configuration from the repository. It supports `[access_scopes]` `scopes` and `optional_scopes` values. Classic webhook `topics` are mapped only for the two entries in the offline registry and when `[webhooks].api_version` is `2026-10`; Shopify Events topics are mapped only when `[events].api_version` is `2026-10`. Unsupported topics and API versions remain UNKNOWN. These checks cover topic-level requirements only: they do not infer extra scopes from webhook payload filters or Events triggers and custom queries. Destinations, filters, and query text are never included in findings.
 
 The CLI supports:
 
@@ -189,7 +190,7 @@ Auto-discovery prefers `shopify.app.toml`, otherwise a single named root configu
 
 Local fragments, inline fragments, and aliases are supported. Admin, Storefront, and Customer Account operations are classified per GraphQL document when a nearby client signal is clear. Storefront operations stay outside Admin scope evidence; Customer Account and ambiguous operations are reported as UNKNOWN. Standalone `.graphql` documents without client context are UNKNOWN until their API surface can be established.
 
-GraphQL 16 is retained for Node 20 support. Dependabot PR #3 remains open: GraphQL 17.0.2 officially requires Node 22/24/25/26 and is incompatible with Node 20. The minimum Node version will not be raised to satisfy that update.
+This change raises the CLI minimum to Node.js 22; Node.js 20 is no longer supported. The GraphQL parser dependency is GraphQL.js 17.0.2, which supports Node.js 22 and 24.
 
 ## Security and privacy
 
@@ -261,10 +262,10 @@ MIT — see [LICENSE](LICENSE).
 
 ## Immutable SHA usage
 
-The Action example pins the reviewed v0.2.4 release commit. Verify the release reference with:
+The Action example pins the reviewed v0.3.0 release commit. Verify the release reference with:
 
 ```bash
-git fetch --tags origin && git rev-parse 'v0.2.4^{commit}'
+git fetch --tags origin && git rev-parse 'v0.3.0^{commit}'
 ```
 
-Published patch tags are retained; existing minor aliases are movable. A reviewed full commit SHA is the immutable execution reference.
+Published patch tags are retained; existing minor aliases are movable. A reviewed full commit SHA is the immutable execution reference. The webhook evidence described above is unreleased until a later version is published.

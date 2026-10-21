@@ -2,7 +2,7 @@ export const EVIDENCE_VERSION = '2026-10';
 export const API_VERSION_INTELLIGENCE = Object.freeze({
   latestStable: '2026-10',
   releaseCandidate: '2027-01',
-  verifiedAt: '2026-10-14',
+  verifiedAt: '2026-10-21',
   statuses: Object.freeze({
     '2025-04': 'unsupported',
     '2025-07': 'unsupported',
@@ -105,6 +105,27 @@ export const EVENTS_TOPIC_EVIDENCE = Object.freeze({
   Product: eventsTopic(['read_products'], 'product'),
   Refund: eventsTopic(['read_orders', 'read_marketplace_orders', 'read_buyer_membership_orders'], 'refund'),
   Return: eventsTopic(['read_returns', 'read_marketplace_returns'], 'return')
+});
+
+// Classic webhook topic requirements are verified against Shopify's 2026-10
+// WebhookSubscriptionTopic reference. Keep this separate from Events topics:
+// the two subscription systems use different names and evidence sources.
+const CLASSIC_WEBHOOK_SOURCE = 'https://shopify.dev/docs/api/admin-graphql/2026-10/enums/WebhookSubscriptionTopic';
+const classicWebhookTopic = (scopes, note) => Object.freeze({
+  ruleId: 'SG-SCOPE-001',
+  apiSurface: 'classic-webhook',
+  scopes: Object.freeze(scopes),
+  apiVersions: Object.freeze(['2026-10']),
+  evidenceVersion: '2026-10',
+  lastVerified: '2026-10-21',
+  confidence: 'high',
+  source: CLASSIC_WEBHOOK_SOURCE,
+  note,
+});
+
+export const CLASSIC_WEBHOOK_TOPIC_EVIDENCE = Object.freeze({
+  'products/update': classicWebhookTopic(['read_products'], 'Shopify documents read_products for this topic.'),
+  'orders/create': classicWebhookTopic(['read_orders', 'read_marketplace_orders'], 'Shopify documents either read_orders or read_marketplace_orders for this topic.'),
 });
 
 export const IMPLIED_SCOPES = new Map([

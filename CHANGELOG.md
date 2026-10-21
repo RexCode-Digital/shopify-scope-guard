@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- Add offline scope evidence for classic `products/update` and `orders/create` subscriptions in `shopify.app.toml`, with separate EVIDENCED, NOT EVIDENCED, and UNKNOWN results from Shopify Events.
+- Expose classic webhook evidence counts in human, JSON, SARIF, and GitHub Action outputs without including destinations or filter values.
+- Require Node.js 22 or newer for the CLI, test Node.js 22 and 24 in CI, and update GraphQL.js to 17.0.2. This drops Node.js 20 CLI support.
+- Correct the standalone GraphQL document support note and refresh the immutable Action example to the v0.3.0 commit.
+
 ## 0.3.0
 
 - Classify Admin, Storefront, Customer Account, and ambiguous GraphQL operations independently using nearby source context.
