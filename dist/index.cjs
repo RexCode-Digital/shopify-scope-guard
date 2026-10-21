@@ -4201,6 +4201,7 @@ var IMPLIED_SCOPES = /* @__PURE__ */ new Map([
   ["write_products", "read_products"],
   ["write_orders", "read_orders"],
   ["write_customers", "read_customers"],
+  ["write_marketplace_orders", "read_marketplace_orders"],
   ["write_inventory", "read_inventory"],
   ["write_draft_orders", "read_draft_orders"],
   ["write_discounts", "read_discounts"],

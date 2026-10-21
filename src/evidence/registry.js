@@ -130,6 +130,7 @@ export const CLASSIC_WEBHOOK_TOPIC_EVIDENCE = Object.freeze({
 
 export const IMPLIED_SCOPES = new Map([
   ['write_products', 'read_products'], ['write_orders', 'read_orders'], ['write_customers', 'read_customers'],
+  ['write_marketplace_orders', 'read_marketplace_orders'],
   ['write_inventory', 'read_inventory'], ['write_draft_orders', 'read_draft_orders'], ['write_discounts', 'read_discounts'],
   ['write_themes', 'read_themes'], ['write_content', 'read_content'], ['write_locations', 'read_locations'],
   ['write_files', 'read_files'],

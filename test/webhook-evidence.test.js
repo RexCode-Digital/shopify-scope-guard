@@ -77,6 +77,18 @@ test('orders/create accepts documented alternatives and does not treat optional 
   assert.doesNotMatch(optionalFinding.remediation, /conditional on an optional-scope request/i);
 });
 
+test('write_marketplace_orders grants evidence only when declared as required', t => {
+  const required = fixture(t, 'write_marketplace_orders', `[webhooks]\napi_version="2026-10"\n\n[[webhooks.subscriptions]]\ntopics=["orders/create"]\nuri="/orders"\n`);
+  const requiredReport = audit({ root: required });
+  assert.equal(topicObservation(requiredReport, 'orders/create').evidenceStatus, 'EVIDENCED');
+  assert.equal(requiredReport.findings.some(item => item.ruleId === 'SG-SCOPE-001'), false);
+
+  const optional = fixture(t, '', `optional_scopes=["write_marketplace_orders"]\n[webhooks]\napi_version="2026-10"\n\n[[webhooks.subscriptions]]\ntopics=["orders/create"]\nuri="/orders"\n`);
+  const optionalReport = audit({ root: optional });
+  assert.equal(topicObservation(optionalReport, 'orders/create').evidenceStatus, 'NOT EVIDENCED');
+  assert.ok(optionalReport.findings.some(item => item.ruleId === 'SG-SCOPE-002'));
+});
+
 test('multiple subscriptions deduplicate topic requirements without exposing destinations', t => {
   const root = fixture(t, 'read_products', `[webhooks]\napi_version="2026-10"\n\n[[webhooks.subscriptions]]\ntopics=["products/update", "orders/create"]\nuri="PRIVATE_DESTINATION_ONE"\n\n[[webhooks.subscriptions]]\ntopics=["products/update"]\nuri="PRIVATE_DESTINATION_TWO"\n`);
   const report = audit({ root });
