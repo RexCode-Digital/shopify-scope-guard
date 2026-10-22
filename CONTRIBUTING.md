@@ -1,33 +1,26 @@
-# Contributing
+# Contributing to Shopify Scope Guard
 
-Contributions are welcome around evidence-backed scope mappings, official Shopify documentation references, false-positive reduction, parser improvements, scanner hardening, and privacy-safe fixtures.
+Contributions are welcome around evidence-backed Shopify scope mappings, API-version boundaries, conservative UNKNOWN handling, and privacy-safe fixtures.
 
-## Contribution terms
+This project is MIT licensed. You retain copyright in your contributions and confirm you have the right to submit them. Identify third-party code and assets with their applicable licences.
 
-You retain copyright in your contributions. By submitting a contribution, you agree that it is provided under the same MIT licence that applies to this project. You confirm that you have the right to submit the contribution. Disclose any third-party code or assets and identify their applicable licences before including them.
-
-## Development setup
-
-Use Node.js 22 or newer, then install the locked dependencies:
+Use Node.js 22 or newer. Install the locked dependencies and run the relevant checks before opening a pull request:
 
 ```sh
 npm ci
 npm test
+npm run coverage
 npm run lint
 npm run typecheck
 npm run build
+npm run package:smoke
+npm run action:check
+npm audit --omit=dev --audit-level=high
+git diff --check
 ```
 
-Before opening a pull request, also run `npm run coverage`, `npm audit --omit=dev --audit-level=high`, and `git diff --check`.
+Add a regression test for each behaviour change. Keep fixtures synthetic and sanitised. Link current official Shopify evidence for Shopify-specific rules or mappings, and include a negative case where static detection could otherwise produce a false positive. Keep output deterministic and preserve the product's uncertainty and privacy boundaries.
 
-## Evidence and regression rules
+The project follows a solo-maintainer review model. Use a focused pull request and record the checks actually run. Human approval is not a branch-protection requirement; automated checks remain required. Contributors are responsible for reviewing and understanding submitted changes.
 
-- Add a regression test for every bug or rule change.
-- Link every new Shopify scope mapping to an official Shopify source.
-- Record the evidence version and confidence honestly.
-- Keep UNKNOWN distinct from NOT EVIDENCED; static analysis must not claim that a scope is unused.
-- Use privacy-safe fixtures with no credentials, tokens, or merchant data.
-
-See the [open issues](https://github.com/RexCode-Digital/shopify-scope-guard/issues) for current opportunities.
-
-These repositories use a solo-maintainer review model. Keep changes in pull requests and merge only after the required automated checks pass. CODEOWNERS may route review requests, but human approval is not a merge requirement.
+Read the shared [RexCode Open Source standards](https://github.com/RexCode-Digital/.github/blob/main/docs/oss/standards.md). For security reports, use [SECURITY.md](SECURITY.md); for safe usage questions, use [SUPPORT.md](SUPPORT.md).

@@ -1,11 +1,5 @@
 # Support
 
-Open a [GitHub issue](https://github.com/RexCode-Digital/shopify-scope-guard/issues) for reproducible bugs, documentation problems, and feature requests. Include:
+Use [GitHub Issues](https://github.com/RexCode-Digital/shopify-scope-guard/issues) for reproducible bugs, documentation problems, and focused feature requests. Include the Shopify Scope Guard version, command or Action configuration, Node.js/npm and operating system versions, a minimal sanitised reproduction, and expected and actual behaviour. For scope reports include the configured scopes, selected Admin GraphQL API version, and supported operation or webhook surface.
 
-- Scope Guard version and command
-- operating system and Node.js version
-- a minimal sanitized reproduction
-- expected and actual behaviour
-- sanitized human, JSON, or SARIF output
-
-Never include Shopify tokens, credentials, private keys, customer information, or merchant data. For suspected security vulnerabilities, follow [SECURITY.md](SECURITY.md) instead of opening a public issue.
+Remove credentials, tokens, merchant/customer data, private source, private URLs, and production secrets. Do not post suspected vulnerabilities publicly; follow [SECURITY.md](SECURITY.md) for private reporting.
