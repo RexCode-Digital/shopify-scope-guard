@@ -9,7 +9,7 @@ inputs:
   config: { description: Shopify app TOML path, required: false }
   api-version: { description: Admin GraphQL API version selected for scope evidence, required: false, default: '2026-10' }
   fail-on: { description: Minimum finding severity that fails the job, required: false, default: high }
-  format: { description: Output format human, json, or sarif, required: false, default: human }
+  format: { description: 'Output format: human, json, or sarif', required: false, default: human }
   show-unmapped: { description: Include unsupported Shopify patterns, required: false, default: false }
 outputs:
   outcome: { description: Scan outcome }
@@ -19,7 +19,7 @@ outputs:
   low-count: { description: Low findings }
   unknown-count: { description: Unknown code patterns }
   api-version: { description: Selected Admin GraphQL API version }
-  api-version-status: { description: Shopify API version status: stable, release-candidate, unstable, or unverified }
+  api-version-status: { description: 'Shopify API version status: stable, release-candidate, unstable, or unverified' }
   evidence-version: { description: Bundled evidence version }
   evidence-applicable: { description: Whether the evidence pack applies to the selected Admin GraphQL API version }
   missing-scope-count: { description: Missing or optional-required scope findings }
